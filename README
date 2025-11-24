@@ -2,10 +2,15 @@
 
 A compact browser driving game where you guide a glowing roadster to the finish line while weaving around randomly placed obstacles.
 
+## How to run
+1. Download the project or clone it locally.
+2. Open the `index.html` file directly in your browser (double-click it) **or** start a tiny local server:
+   - **Python 3:** `python -m http.server 8000 --bind 0.0.0.0` then open http://localhost:8000/
+3. You should see the **Road Dash** screen with the canvas and HUD.
+
 ## How to play
-1. Open `index.html` in a browser (no build tools required).
-2. Use the **arrow keys** to steer and accelerate.
-3. Reach the finish strip without colliding with debris. Press **R** to restart anytime.
+1. Use the **arrow keys** to steer and accelerate.
+2. Reach the finish strip without colliding with debris. Press **R** to restart anytime.
 
 ## Notes
 - Obstacles are freshly randomized on every restart.
