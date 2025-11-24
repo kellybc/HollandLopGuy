@@ -24,6 +24,7 @@
       box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5), 0 0 0 4px rgba(255, 255, 255, 0.02);
       border-radius: 16px;
       padding: 18px 20px 12px;
+      position: relative;
     }
 
     h1 {
@@ -72,6 +73,13 @@
       gap: 6px;
     }
 
+    .timer-pill {
+      position: absolute;
+      top: 12px;
+      right: 14px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+    }
+
     .pill strong {
       color: #e2e8f0;
     }
@@ -105,12 +113,12 @@
 <body>
   <div class="frame">
     <h1><span class="indicator"></span> Road Dash</h1>
+    <div class="pill timer-pill"><strong>Time:</strong> <span id="timer">0.000</span> s</div>
     <canvas id="gameCanvas" width="900" height="540" aria-label="Road driving game"></canvas>
     <div class="hud" id="hud">
       <div class="pill"><strong>Speed:</strong> <span id="speed">0</span> mph</div>
       <div class="pill"><strong>Distance:</strong> <span id="distance">0</span> m</div>
       <div class="pill"><strong>Obstacles:</strong> <span id="obstacles">0</span></div>
-      <div class="pill"><strong>Time:</strong> <span id="timer">0.000</span> s</div>
       <div class="pill"><strong>Goal:</strong> Reach the finish without crashing.</div>
       <div class="pill"><strong>Controls:</strong> Arrow keys steer + accelerate.</div>
       <div class="status" id="status">Drive forward and avoid debris. Reach the glowing finish strip!</div>
@@ -161,8 +169,9 @@
       crashed: false,
       confetti: [],
       lastTime: performance.now(),
-      startTime: performance.now(),
+      startTime: null,
       stopTime: null,
+      timerStarted: false,
     };
 
     function resetGame() {
@@ -174,8 +183,9 @@
       state.confetti = [];
       state.obstacles = generateObstacles();
       state.lastTime = performance.now();
-      state.startTime = performance.now();
+      state.startTime = null;
       state.stopTime = null;
+      state.timerStarted = false;
       setStatus("Drive forward and avoid debris. Reach the glowing finish strip!", "");
     }
 
@@ -282,6 +292,10 @@
       const timeScale = delta / 16.67; // Normalize against ~60 FPS
 
       if (state.keys.has("ArrowUp")) {
+        if (!state.timerStarted) {
+          state.startTime = now;
+          state.timerStarted = true;
+        }
         car.speed = Math.min(car.speed + car.acceleration * timeScale, car.maxSpeed);
       }
 
@@ -704,7 +718,9 @@
       hud.distance.textContent = Math.round(car.distance);
       hud.obstacles.textContent = state.obstacles.length;
       const referenceTime = state.stopTime ?? performance.now();
-      hud.timer.textContent = formatElapsed(referenceTime - state.startTime);
+      const elapsed =
+        state.startTime === null ? 0 : Math.max(0, referenceTime - state.startTime);
+      hud.timer.textContent = formatElapsed(elapsed);
     }
 
     function gameLoop(now = performance.now()) {

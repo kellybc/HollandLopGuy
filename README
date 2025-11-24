@@ -22,6 +22,6 @@ If you prefer not to run a server locally, you can enable GitHub Pages in your r
 
 ## Notes
 - Obstacles are freshly randomized on every restart.
-- The HUD shows current speed (mph), distance traveled, obstacle count, and your live run time with millisecond precision so you know how long each finish takes.
+- The HUD shows current speed (mph), distance traveled, obstacle count, and your live run time with millisecond precision; the timer sits in the top-right corner and starts counting as soon as you accelerate.
 - Holding accelerate (Arrow Up) lets you climb to roughly **13 mph**, and once you build speed you won't slow down until you crash or finish.
 - Crossing the finish triggers a burst of confetti to celebrate a clean run.
