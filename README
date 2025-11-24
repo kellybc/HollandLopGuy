@@ -24,3 +24,4 @@ If you prefer not to run a server locally, you can enable GitHub Pages in your r
 - Obstacles are freshly randomized on every restart.
 - The HUD shows current speed (mph), distance traveled, and obstacle count for quick feedback.
 - Holding accelerate (Arrow Up) lets you climb to roughly **13 mph**, and once you build speed you won't slow down until you crash or finish.
+- Crossing the finish triggers a burst of confetti to celebrate a clean run.
