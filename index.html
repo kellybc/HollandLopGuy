@@ -178,15 +178,59 @@
       const obstacles = [];
       const count = 36;
       const types = ["banana", "tire", "hose", "wrench"];
+      const laneLimit = (road.width - car.width) / 2;
+      const corridor = createSafeCorridor(laneLimit);
+
       for (let i = 0; i < count; i += 1) {
         const distance = 180 + Math.random() * (road.length - 360);
-        const lane = (Math.random() - 0.5) * (road.width - car.width - 50);
         const type = types[i % types.length];
         const size = 32 + Math.random() * 32;
         const dimensions = getObstacleSize(type, size);
+
+        const lane = pickLaneAwayFromPath({
+          distance,
+          width: dimensions.width,
+          laneLimit,
+          corridor,
+        });
+
         obstacles.push({ x: lane, distance, type, ...dimensions });
       }
+
       return obstacles.sort((a, b) => a.distance - b.distance);
+    }
+
+    function createSafeCorridor(laneLimit) {
+      const corridorWidth = car.width * 1.6;
+      const centerBase = (Math.random() - 0.5) * laneLimit * 0.8;
+      const wave = 60 + Math.random() * 30;
+
+      return {
+        width: corridorWidth,
+        center(distance) {
+          const offset = Math.sin(distance / 220) * wave;
+          const raw = centerBase + offset;
+          return Math.max(
+            -laneLimit + corridorWidth / 2,
+            Math.min(laneLimit - corridorWidth / 2, raw)
+          );
+        },
+      };
+    }
+
+    function pickLaneAwayFromPath({ distance, width, laneLimit, corridor }) {
+      const margin = corridor.width / 2 + width / 2 + 12;
+      const safeCenter = corridor.center(distance);
+
+      for (let attempt = 0; attempt < 16; attempt += 1) {
+        const candidate = (Math.random() - 0.5) * laneLimit * 1.9;
+        const clamped = Math.max(-laneLimit, Math.min(laneLimit, candidate));
+        if (Math.abs(clamped - safeCenter) > margin) {
+          return clamped;
+        }
+      }
+
+      return safeCenter > 0 ? -laneLimit + width : laneLimit - width; // fallback away from the corridor
     }
 
     function getObstacleSize(type, base) {
