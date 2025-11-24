@@ -141,8 +141,8 @@
       acceleration: 0.25,
       friction: 0.04,
       steering: 5,
-      width: 48,
-      height: 84,
+      width: 56,
+      height: 118,
       distance: 0,
     };
 
@@ -309,18 +309,70 @@
       const roadCenter = canvas.width / 2;
       const x = roadCenter + car.x;
       const y = camera.baseY;
-      const radius = 10;
+      const top = y - car.height;
 
-      const gradient = ctx.createLinearGradient(x, y - car.height, x, y);
-      gradient.addColorStop(0, "#38bdf8");
-      gradient.addColorStop(1, "#0ea5e9");
-      ctx.fillStyle = gradient;
-      ctx.beginPath();
-      ctx.roundRect(x - car.width / 2, y - car.height, car.width, car.height, radius);
+      // Main chassis
+      const bodyWidth = car.width * 0.55;
+      const bodyGradient = ctx.createLinearGradient(x, top, x, y);
+      bodyGradient.addColorStop(0, "#38bdf8");
+      bodyGradient.addColorStop(1, "#0284c7");
+      ctx.fillStyle = bodyGradient;
+      ctx.roundRect(x - bodyWidth / 2, top + 16, bodyWidth, car.height - 28, 14);
       ctx.fill();
 
+      // Nose cone taper
+      ctx.fillStyle = "#bae6fd";
+      ctx.beginPath();
+      ctx.moveTo(x - bodyWidth * 0.35, top + 18);
+      ctx.lineTo(x + bodyWidth * 0.35, top + 18);
+      ctx.lineTo(x, top + 4);
+      ctx.closePath();
+      ctx.fill();
+
+      // Front wing
+      ctx.fillStyle = "#1d4ed8";
+      ctx.roundRect(x - car.width * 0.7, top + 8, car.width * 1.4, 12, 6);
+      ctx.fill();
+
+      // Side pods
+      ctx.fillStyle = "#0ea5e9";
+      ctx.roundRect(x - car.width / 2, top + 46, car.width, 38, 12);
+      ctx.fill();
+
+      // Rear wing
+      ctx.fillStyle = "#1d4ed8";
+      ctx.roundRect(x - car.width * 0.45, y - 20, car.width * 0.9, 12, 6);
+      ctx.fill();
+
+      // Cockpit canopy
       ctx.fillStyle = "rgba(255,255,255,0.9)";
-      ctx.fillRect(x - car.width / 2 + 6, y - car.height + 8, car.width - 12, 18);
+      ctx.roundRect(x - bodyWidth * 0.35, top + 34, bodyWidth * 0.7, 22, 10);
+      ctx.fill();
+
+      // Roll hoop
+      ctx.fillStyle = "#0c4a6e";
+      ctx.roundRect(x - 8, top + 24, 16, 12, 6);
+      ctx.fill();
+
+      // Tires
+      ctx.fillStyle = "#0f172a";
+      const tireWidth = 12;
+      const tireHeight = 24;
+      const tireOffsetX = car.width / 2 + 4;
+      const frontY = top + 24;
+      const rearY = y - 32;
+      ctx.roundRect(x - tireOffsetX - tireWidth, frontY, tireWidth, tireHeight, 6);
+      ctx.roundRect(x + tireOffsetX, frontY, tireWidth, tireHeight, 6);
+      ctx.roundRect(x - tireOffsetX - tireWidth, rearY, tireWidth, tireHeight, 6);
+      ctx.roundRect(x + tireOffsetX, rearY, tireWidth, tireHeight, 6);
+      ctx.fill();
+
+      // Wheel highlights
+      ctx.fillStyle = "rgba(255,255,255,0.16)";
+      ctx.fillRect(x - tireOffsetX - tireWidth + 3, frontY + 6, 6, 12);
+      ctx.fillRect(x + tireOffsetX + 3, frontY + 6, 6, 12);
+      ctx.fillRect(x - tireOffsetX - tireWidth + 3, rearY + 6, 6, 12);
+      ctx.fillRect(x + tireOffsetX + 3, rearY + 6, 6, 12);
     }
 
     function drawFinishLine() {
