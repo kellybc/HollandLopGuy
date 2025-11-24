@@ -141,8 +141,8 @@
       acceleration: 0.25,
       friction: 0.04,
       steering: 5,
-      width: 56,
-      height: 118,
+      width: 14,
+      height: 30,
       distance: 0,
     };
 
@@ -180,10 +180,13 @@
       const types = ["banana", "tire", "hose", "wrench"];
       const laneLimit = (road.width - car.width) / 2;
       const corridor = createSafeCorridor(laneLimit);
+      const maxAttempts = count * 60;
+      let attempts = 0;
 
-      for (let i = 0; i < count; i += 1) {
+      while (obstacles.length < count && attempts < maxAttempts) {
+        attempts += 1;
         const distance = 180 + Math.random() * (road.length - 360);
-        const type = types[i % types.length];
+        const type = types[obstacles.length % types.length];
         const size = 32 + Math.random() * 32;
         const dimensions = getObstacleSize(type, size);
 
@@ -194,14 +197,17 @@
           corridor,
         });
 
-        obstacles.push({ x: lane, distance, type, ...dimensions });
+        const candidate = { x: lane, distance, type, ...dimensions };
+        if (!isTooCloseToOthers(candidate, obstacles)) {
+          obstacles.push(candidate);
+        }
       }
 
       return obstacles.sort((a, b) => a.distance - b.distance);
     }
 
     function createSafeCorridor(laneLimit) {
-      const corridorWidth = car.width * 1.6;
+      const corridorWidth = Math.max(car.width * 2.4, 64);
       const centerBase = (Math.random() - 0.5) * laneLimit * 0.8;
       const wave = 60 + Math.random() * 30;
 
@@ -231,6 +237,19 @@
       }
 
       return safeCenter > 0 ? -laneLimit + width : laneLimit - width; // fallback away from the corridor
+    }
+
+    function isTooCloseToOthers(candidate, obstacles) {
+      const lateralPadding = 18;
+      const verticalPadding = 70;
+
+      return obstacles.some((obs) => {
+        const horizontalGap = Math.abs(candidate.x - obs.x);
+        const verticalGap = Math.abs(candidate.distance - obs.distance);
+        const allowedX = candidate.width / 2 + obs.width / 2 + lateralPadding;
+        const allowedY = candidate.height / 2 + obs.height / 2 + verticalPadding;
+        return horizontalGap < allowedX && verticalGap < allowedY;
+      });
     }
 
     function getObstacleSize(type, base) {
@@ -487,69 +506,105 @@
       const x = roadCenter + car.x;
       const y = camera.baseY;
       const top = y - car.height;
+      const bodyWidth = car.width * 0.65;
+      const noseTipY = top + car.height * 0.05;
+      const bodyTop = top + car.height * 0.22;
+      const bodyHeight = car.height * 0.7;
 
       // Main chassis
-      const bodyWidth = car.width * 0.55;
       const bodyGradient = ctx.createLinearGradient(x, top, x, y);
       bodyGradient.addColorStop(0, "#38bdf8");
       bodyGradient.addColorStop(1, "#0284c7");
       ctx.fillStyle = bodyGradient;
-      ctx.roundRect(x - bodyWidth / 2, top + 16, bodyWidth, car.height - 28, 14);
+      ctx.roundRect(x - bodyWidth / 2, bodyTop, bodyWidth, bodyHeight, car.height * 0.18);
       ctx.fill();
 
       // Nose cone taper
       ctx.fillStyle = "#bae6fd";
       ctx.beginPath();
-      ctx.moveTo(x - bodyWidth * 0.35, top + 18);
-      ctx.lineTo(x + bodyWidth * 0.35, top + 18);
-      ctx.lineTo(x, top + 4);
+      ctx.moveTo(x - bodyWidth * 0.4, bodyTop + car.height * 0.1);
+      ctx.lineTo(x + bodyWidth * 0.4, bodyTop + car.height * 0.1);
+      ctx.lineTo(x, noseTipY);
       ctx.closePath();
       ctx.fill();
 
       // Front wing
       ctx.fillStyle = "#1d4ed8";
-      ctx.roundRect(x - car.width * 0.7, top + 8, car.width * 1.4, 12, 6);
+      ctx.roundRect(
+        x - car.width * 0.75,
+        top + car.height * 0.12,
+        car.width * 1.5,
+        car.height * 0.12,
+        car.height * 0.05
+      );
       ctx.fill();
 
       // Side pods
       ctx.fillStyle = "#0ea5e9";
-      ctx.roundRect(x - car.width / 2, top + 46, car.width, 38, 12);
+      ctx.roundRect(
+        x - car.width * 0.55,
+        top + car.height * 0.46,
+        car.width * 1.1,
+        car.height * 0.24,
+        car.width * 0.18
+      );
       ctx.fill();
 
       // Rear wing
       ctx.fillStyle = "#1d4ed8";
-      ctx.roundRect(x - car.width * 0.45, y - 20, car.width * 0.9, 12, 6);
+      ctx.roundRect(
+        x - car.width * 0.45,
+        y - car.height * 0.2,
+        car.width * 0.9,
+        car.height * 0.08,
+        car.height * 0.04
+      );
       ctx.fill();
 
       // Cockpit canopy
       ctx.fillStyle = "rgba(255,255,255,0.9)";
-      ctx.roundRect(x - bodyWidth * 0.35, top + 34, bodyWidth * 0.7, 22, 10);
+      ctx.roundRect(
+        x - bodyWidth * 0.35,
+        top + car.height * 0.36,
+        bodyWidth * 0.7,
+        car.height * 0.22,
+        car.height * 0.1
+      );
       ctx.fill();
 
       // Roll hoop
       ctx.fillStyle = "#0c4a6e";
-      ctx.roundRect(x - 8, top + 24, 16, 12, 6);
+      ctx.roundRect(
+        x - car.width * 0.08,
+        top + car.height * 0.28,
+        car.width * 0.16,
+        car.height * 0.14,
+        car.height * 0.05
+      );
       ctx.fill();
 
       // Tires
       ctx.fillStyle = "#0f172a";
-      const tireWidth = 12;
-      const tireHeight = 24;
-      const tireOffsetX = car.width / 2 + 4;
-      const frontY = top + 24;
-      const rearY = y - 32;
-      ctx.roundRect(x - tireOffsetX - tireWidth, frontY, tireWidth, tireHeight, 6);
-      ctx.roundRect(x + tireOffsetX, frontY, tireWidth, tireHeight, 6);
-      ctx.roundRect(x - tireOffsetX - tireWidth, rearY, tireWidth, tireHeight, 6);
-      ctx.roundRect(x + tireOffsetX, rearY, tireWidth, tireHeight, 6);
+      const tireWidth = Math.max(4, car.width * 0.34);
+      const tireHeight = Math.max(8, car.height * 0.38);
+      const tireOffsetX = car.width / 2 + tireWidth * 0.55;
+      const frontY = top + car.height * 0.32;
+      const rearY = y - car.height * 0.46;
+      const tireRadius = Math.max(2, car.height * 0.08);
+      ctx.roundRect(x - tireOffsetX - tireWidth, frontY, tireWidth, tireHeight, tireRadius);
+      ctx.roundRect(x + tireOffsetX, frontY, tireWidth, tireHeight, tireRadius);
+      ctx.roundRect(x - tireOffsetX - tireWidth, rearY, tireWidth, tireHeight, tireRadius);
+      ctx.roundRect(x + tireOffsetX, rearY, tireWidth, tireHeight, tireRadius);
       ctx.fill();
 
       // Wheel highlights
       ctx.fillStyle = "rgba(255,255,255,0.16)";
-      ctx.fillRect(x - tireOffsetX - tireWidth + 3, frontY + 6, 6, 12);
-      ctx.fillRect(x + tireOffsetX + 3, frontY + 6, 6, 12);
-      ctx.fillRect(x - tireOffsetX - tireWidth + 3, rearY + 6, 6, 12);
-      ctx.fillRect(x + tireOffsetX + 3, rearY + 6, 6, 12);
+      const highlightWidth = Math.max(3, tireWidth * 0.32);
+      const highlightHeight = Math.max(6, tireHeight * 0.5);
+      ctx.fillRect(x - tireOffsetX - tireWidth + highlightWidth * 0.4, frontY + highlightHeight * 0.35, highlightWidth, highlightHeight);
+      ctx.fillRect(x + tireOffsetX + highlightWidth * 0.4, frontY + highlightHeight * 0.35, highlightWidth, highlightHeight);
+      ctx.fillRect(x - tireOffsetX - tireWidth + highlightWidth * 0.4, rearY + highlightHeight * 0.35, highlightWidth, highlightHeight);
+      ctx.fillRect(x + tireOffsetX + highlightWidth * 0.4, rearY + highlightHeight * 0.35, highlightWidth, highlightHeight);
     }
 
     function drawFinishLine() {
