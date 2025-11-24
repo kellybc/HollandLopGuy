@@ -292,11 +292,12 @@
       const timeScale = delta / 16.67; // Normalize against ~60 FPS
 
       if (state.keys.has("ArrowUp")) {
-        if (!state.timerStarted) {
+        const wasStopped = car.speed <= 0;
+        car.speed = Math.min(car.speed + car.acceleration * timeScale, car.maxSpeed);
+        if (wasStopped && car.speed > 0 && !state.timerStarted) {
           state.startTime = now;
           state.timerStarted = true;
         }
-        car.speed = Math.min(car.speed + car.acceleration * timeScale, car.maxSpeed);
       }
 
       if (state.keys.has("ArrowLeft")) {
