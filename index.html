@@ -110,6 +110,7 @@
       <div class="pill"><strong>Speed:</strong> <span id="speed">0</span> mph</div>
       <div class="pill"><strong>Distance:</strong> <span id="distance">0</span> m</div>
       <div class="pill"><strong>Obstacles:</strong> <span id="obstacles">0</span></div>
+      <div class="pill"><strong>Time:</strong> <span id="timer">0.000</span> s</div>
       <div class="pill"><strong>Goal:</strong> Reach the finish without crashing.</div>
       <div class="pill"><strong>Controls:</strong> Arrow keys steer + accelerate.</div>
       <div class="status" id="status">Drive forward and avoid debris. Reach the glowing finish strip!</div>
@@ -124,6 +125,7 @@
       speed: document.getElementById("speed"),
       distance: document.getElementById("distance"),
       obstacles: document.getElementById("obstacles"),
+      timer: document.getElementById("timer"),
       status: document.getElementById("status"),
     };
 
@@ -159,6 +161,8 @@
       crashed: false,
       confetti: [],
       lastTime: performance.now(),
+      startTime: performance.now(),
+      stopTime: null,
     };
 
     function resetGame() {
@@ -170,6 +174,8 @@
       state.confetti = [];
       state.obstacles = generateObstacles();
       state.lastTime = performance.now();
+      state.startTime = performance.now();
+      state.stopTime = null;
       setStatus("Drive forward and avoid debris. Reach the glowing finish strip!", "");
     }
 
@@ -270,7 +276,7 @@
       }
     }
 
-    function update(delta) {
+    function update(delta, now) {
       if (state.crashed || state.finished) return;
 
       const timeScale = delta / 16.67; // Normalize against ~60 FPS
@@ -291,9 +297,10 @@
 
       car.distance = Math.min(car.distance + car.speed * 7 * timeScale, road.length);
 
-      detectCollision();
+      detectCollision(now);
       if (!state.crashed && car.distance >= road.length) {
         state.finished = true;
+        state.stopTime = now;
         setStatus("You reached the finish! Press R to race again.", "win");
         launchConfetti();
       }
@@ -337,7 +344,7 @@
       state.confetti = state.confetti.filter((piece) => piece.life > 0 && piece.y < canvas.height + 40);
     }
 
-    function detectCollision() {
+    function detectCollision(now) {
       const carBox = {
         left: car.x - car.width / 2,
         right: car.x + car.width / 2,
@@ -359,6 +366,7 @@
         if (overlapX && overlapY) {
           state.crashed = true;
           car.speed = 0;
+          state.stopTime = now;
           setStatus("Crash! Press R to restart and try again.", "bad");
           return;
         }
@@ -683,17 +691,27 @@
       });
     }
 
+    function formatElapsed(ms) {
+      const seconds = Math.floor(ms / 1000);
+      const millis = Math.floor(ms % 1000)
+        .toString()
+        .padStart(3, "0");
+      return `${seconds}.${millis}`;
+    }
+
     function updateHud() {
       hud.speed.textContent = Math.round(car.speed * SPEED_MPH_PER_UNIT);
       hud.distance.textContent = Math.round(car.distance);
       hud.obstacles.textContent = state.obstacles.length;
+      const referenceTime = state.stopTime ?? performance.now();
+      hud.timer.textContent = formatElapsed(referenceTime - state.startTime);
     }
 
     function gameLoop(now = performance.now()) {
       const delta = now - state.lastTime;
       state.lastTime = now;
 
-      update(delta);
+      update(delta, now);
       updateConfetti();
       drawScene();
       updateHud();
