@@ -146,6 +146,9 @@
 
     const SPEED_MPH_PER_UNIT = 12 * 0.621371; // Keep HUD tied to a real-world-ish mph scale
     const TARGET_MAX_MPH = 50;
+    const COLLISION_SLOW_MPH = 2;
+    const COLLISION_SLOW_DURATION_MS = 1000;
+    const COLLISION_SLOW_SPEED = COLLISION_SLOW_MPH / SPEED_MPH_PER_UNIT;
 
     const car = {
       x: 0,
@@ -301,8 +304,7 @@
       }
 
       if (state.slowUntil > now) {
-        const slowCap = car.maxSpeed * 0.35;
-        car.speed = Math.min(car.speed, slowCap);
+        car.speed = Math.min(car.speed, COLLISION_SLOW_SPEED);
       }
 
       if (state.keys.has("ArrowLeft")) {
@@ -384,9 +386,9 @@
         const overlapY = carBox.bottom < obsBox.top && carBox.top > obsBox.bottom;
 
         if (overlapX && overlapY) {
-          state.slowUntil = Math.max(state.slowUntil, now + 1000);
-          car.speed = Math.min(car.speed, car.maxSpeed * 0.35);
-          setStatus("You clipped debris—slowing for a moment.", "bad");
+          state.slowUntil = Math.max(state.slowUntil, now + COLLISION_SLOW_DURATION_MS);
+          car.speed = COLLISION_SLOW_SPEED;
+          setStatus("You clipped debris—slowing to 2 mph for a moment.", "bad");
           return;
         }
       }

@@ -23,5 +23,5 @@ If you prefer not to run a server locally, you can enable GitHub Pages in your r
 ## Notes
 - Obstacles are freshly randomized on every restart.
 - The HUD shows current speed (mph), distance traveled, obstacle count, and your live run time with millisecond precision; the timer sits in the top-right corner and starts counting as soon as you accelerate.
-- Holding accelerate (Arrow Up) lets you build momentum anywhere up to **50 mph**, and if you clip debris you'll simply slow for a second instead of crashing.
+- Holding accelerate (Arrow Up) lets you build momentum anywhere up to **50 mph**, and if you clip debris you'll drop to **2 mph** for a second before regaining speed instead of crashing.
 - Crossing the finish triggers a burst of confetti to celebrate a clean run.
