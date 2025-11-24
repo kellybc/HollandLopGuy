@@ -22,4 +22,5 @@ If you prefer not to run a server locally, you can enable GitHub Pages in your r
 
 ## Notes
 - Obstacles are freshly randomized on every restart.
-- The HUD shows current speed, distance traveled, and obstacle count for quick feedback.
+- The HUD shows current speed (mph), distance traveled, and obstacle count for quick feedback.
+- Holding accelerate (Arrow Up) lets you climb to roughly **15 mph**.

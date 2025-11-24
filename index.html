@@ -107,7 +107,7 @@
     <h1><span class="indicator"></span> Road Dash</h1>
     <canvas id="gameCanvas" width="900" height="540" aria-label="Road driving game"></canvas>
     <div class="hud" id="hud">
-      <div class="pill"><strong>Speed:</strong> <span id="speed">0</span> km/h</div>
+      <div class="pill"><strong>Speed:</strong> <span id="speed">0</span> mph</div>
       <div class="pill"><strong>Distance:</strong> <span id="distance">0</span> m</div>
       <div class="pill"><strong>Obstacles:</strong> <span id="obstacles">0</span></div>
       <div class="pill"><strong>Goal:</strong> Reach the finish without crashing.</div>
@@ -134,10 +134,13 @@
       length: 2600,
     };
 
+    const SPEED_MPH_PER_UNIT = 12 * 0.621371; // Keep HUD tied to a real-world-ish mph scale
+    const TARGET_MAX_MPH = 15;
+
     const car = {
       x: 0,
       speed: 0,
-      maxSpeed: 1,
+      maxSpeed: TARGET_MAX_MPH / SPEED_MPH_PER_UNIT,
       acceleration: 0.025,
       friction: 0.004,
       steering: 5,
@@ -635,7 +638,7 @@
     }
 
     function updateHud() {
-      hud.speed.textContent = Math.round(car.speed * 12);
+      hud.speed.textContent = Math.round(car.speed * SPEED_MPH_PER_UNIT);
       hud.distance.textContent = Math.round(car.distance);
       hud.obstacles.textContent = state.obstacles.length;
     }
