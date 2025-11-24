@@ -177,14 +177,30 @@
     function generateObstacles() {
       const obstacles = [];
       const count = 36;
+      const types = ["banana", "tire", "hose", "wrench"];
       for (let i = 0; i < count; i += 1) {
         const distance = 180 + Math.random() * (road.length - 360);
         const lane = (Math.random() - 0.5) * (road.width - car.width - 50);
-        const width = 36 + Math.random() * 36;
-        const height = 36 + Math.random() * 36;
-        obstacles.push({ x: lane, distance, width, height });
+        const type = types[i % types.length];
+        const size = 32 + Math.random() * 32;
+        const dimensions = getObstacleSize(type, size);
+        obstacles.push({ x: lane, distance, type, ...dimensions });
       }
       return obstacles.sort((a, b) => a.distance - b.distance);
+    }
+
+    function getObstacleSize(type, base) {
+      switch (type) {
+        case "banana":
+          return { width: base * 1.2, height: base * 0.6 };
+        case "tire":
+          return { width: base * 0.9, height: base * 0.9 };
+        case "hose":
+          return { width: base * 1.6, height: base * 0.5 };
+        case "wrench":
+        default:
+          return { width: base * 1.1, height: base * 0.5 };
+      }
     }
 
     function update(delta) {
@@ -286,23 +302,140 @@
       const roadCenter = canvas.width / 2;
       for (const obstacle of state.obstacles) {
         const y = camera.baseY - (obstacle.distance - car.distance);
-        if (y < -100 || y > canvas.height + 120) continue;
+        if (y < -120 || y > canvas.height + 140) continue;
         const x = roadCenter + obstacle.x;
-        const radius = 8;
-        ctx.fillStyle = "#f97316";
-        ctx.beginPath();
-        ctx.roundRect(
-          x - obstacle.width / 2,
-          y - obstacle.height,
-          obstacle.width,
-          obstacle.height,
-          radius
-        );
-        ctx.fill();
-        ctx.strokeStyle = "rgba(255,255,255,0.15)";
-        ctx.lineWidth = 2;
-        ctx.stroke();
+
+        ctx.save();
+        ctx.translate(x, y - obstacle.height / 2);
+
+        switch (obstacle.type) {
+          case "banana":
+            drawBanana(obstacle);
+            break;
+          case "tire":
+            drawTire(obstacle);
+            break;
+          case "hose":
+            drawHose(obstacle);
+            break;
+          case "wrench":
+          default:
+            drawWrench(obstacle);
+            break;
+        }
+
+        ctx.restore();
       }
+    }
+
+    function drawBanana(obstacle) {
+      const { width, height } = obstacle;
+      const curvature = height * 1.4;
+      ctx.fillStyle = "#fbbf24";
+      ctx.strokeStyle = "#f59e0b";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(-width / 2, height / 4);
+      ctx.quadraticCurveTo(-width / 4, -curvature, width / 4, -height / 8);
+      ctx.quadraticCurveTo(width / 2, curvature / 2, width / 2.4, height / 2);
+      ctx.quadraticCurveTo(0, height * 0.8, -width / 2, height / 2);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = "#fef3c7";
+      ctx.beginPath();
+      ctx.moveTo(-width / 2.4, height / 3);
+      ctx.quadraticCurveTo(-width / 6, -curvature * 0.5, width / 6, -height / 10);
+      ctx.quadraticCurveTo(width / 2.8, curvature * 0.32, width / 3, height / 3);
+      ctx.quadraticCurveTo(0, height * 0.65, -width / 2.4, height / 3);
+      ctx.fill();
+    }
+
+    function drawTire(obstacle) {
+      const radius = Math.min(obstacle.width, obstacle.height) / 2;
+      const inner = radius * 0.55;
+      ctx.fillStyle = "#0f172a";
+      ctx.beginPath();
+      ctx.arc(0, 0, radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = "#1f2937";
+      ctx.lineWidth = radius * 0.18;
+      ctx.beginPath();
+      ctx.arc(0, 0, radius * 0.8, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.fillStyle = "#94a3b8";
+      ctx.beginPath();
+      ctx.arc(0, 0, inner, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = "rgba(255,255,255,0.25)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let i = 0; i < 6; i += 1) {
+        const angle = (Math.PI * 2 * i) / 6;
+        const x = Math.cos(angle) * inner;
+        const y = Math.sin(angle) * inner;
+        ctx.moveTo(0, 0);
+        ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+
+    function drawHose(obstacle) {
+      const { width, height } = obstacle;
+      const thickness = Math.max(6, height * 0.4);
+      ctx.lineWidth = thickness;
+      ctx.lineCap = "round";
+      ctx.strokeStyle = "#22c55e";
+      ctx.beginPath();
+      ctx.moveTo(-width / 2, -height / 3);
+      ctx.bezierCurveTo(-width / 4, -height * 1.8, width / 4, height * 1.8, width / 2, height / 3);
+      ctx.stroke();
+
+      ctx.strokeStyle = "rgba(255,255,255,0.35)";
+      ctx.lineWidth = thickness * 0.35;
+      ctx.beginPath();
+      ctx.moveTo(-width / 3, -height / 3.5);
+      ctx.bezierCurveTo(-width / 6, -height * 1.2, width / 6, height * 1.2, width / 3, height / 3.5);
+      ctx.stroke();
+    }
+
+    function drawWrench(obstacle) {
+      const { width, height } = obstacle;
+      const handleWidth = height * 0.55;
+      const headWidth = height * 1.2;
+      const headLength = width * 0.35;
+
+      ctx.fillStyle = "#cbd5e1";
+      ctx.strokeStyle = "#94a3b8";
+      ctx.lineWidth = 3;
+
+      // Handle
+      ctx.beginPath();
+      ctx.roundRect(-width / 2, -handleWidth / 2, width - headLength, handleWidth, handleWidth / 2.2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Head open end
+      ctx.beginPath();
+      ctx.moveTo(width / 2 - headLength, -headWidth / 2);
+      ctx.lineTo(width / 2, -headWidth / 3);
+      ctx.lineTo(width / 2 - headLength / 1.6, -height * 0.2);
+      ctx.lineTo(width / 2 - headLength / 1.6, height * 0.2);
+      ctx.lineTo(width / 2, headWidth / 3);
+      ctx.lineTo(width / 2 - headLength, headWidth / 2);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Bolt hole
+      ctx.fillStyle = "#94a3b8";
+      ctx.beginPath();
+      ctx.arc(width / 6, 0, handleWidth * 0.18, 0, Math.PI * 2);
+      ctx.fill();
     }
 
     function drawCar() {
