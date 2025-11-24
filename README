@@ -1,1 +1,12 @@
-This is the readme 
+# Road Dash
+
+A compact browser driving game where you guide a glowing roadster to the finish line while weaving around randomly placed obstacles.
+
+## How to play
+1. Open `index.html` in a browser (no build tools required).
+2. Use the **arrow keys** to steer and accelerate.
+3. Reach the finish strip without colliding with debris. Press **R** to restart anytime.
+
+## Notes
+- Obstacles are freshly randomized on every restart.
+- The HUD shows current speed, distance traveled, and obstacle count for quick feedback.
