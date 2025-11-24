@@ -166,12 +166,12 @@
       keys: new Set(),
       obstacles: [],
       finished: false,
-      crashed: false,
       confetti: [],
       lastTime: performance.now(),
       startTime: null,
       stopTime: null,
       timerStarted: false,
+      slowUntil: 0,
     };
 
     function resetGame() {
@@ -179,13 +179,13 @@
       car.speed = 0;
       car.distance = 0;
       state.finished = false;
-      state.crashed = false;
       state.confetti = [];
       state.obstacles = generateObstacles();
       state.lastTime = performance.now();
       state.startTime = null;
       state.stopTime = null;
       state.timerStarted = false;
+      state.slowUntil = 0;
       setStatus("Drive forward and avoid debris. Reach the glowing finish strip!", "");
     }
 
@@ -287,7 +287,7 @@
     }
 
     function update(delta, now) {
-      if (state.crashed || state.finished) return;
+      if (state.finished) return;
 
       const timeScale = delta / 16.67; // Normalize against ~60 FPS
 
@@ -298,6 +298,11 @@
           state.startTime = now;
           state.timerStarted = true;
         }
+      }
+
+      if (state.slowUntil > now) {
+        const slowCap = car.maxSpeed * 0.35;
+        car.speed = Math.min(car.speed, slowCap);
       }
 
       if (state.keys.has("ArrowLeft")) {
@@ -313,7 +318,7 @@
       car.distance = Math.min(car.distance + car.speed * 7 * timeScale, road.length);
 
       detectCollision(now);
-      if (!state.crashed && car.distance >= road.length) {
+      if (car.distance >= road.length) {
         state.finished = true;
         state.stopTime = now;
         setStatus("You reached the finish! Press R to race again.", "win");
@@ -379,10 +384,9 @@
         const overlapY = carBox.bottom < obsBox.top && carBox.top > obsBox.bottom;
 
         if (overlapX && overlapY) {
-          state.crashed = true;
-          car.speed = 0;
-          state.stopTime = now;
-          setStatus("Crash! Press R to restart and try again.", "bad");
+          state.slowUntil = Math.max(state.slowUntil, now + 1000);
+          car.speed = Math.min(car.speed, car.maxSpeed * 0.35);
+          setStatus("You clipped debris—slowing for a moment.", "bad");
           return;
         }
       }
