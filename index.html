@@ -146,9 +146,7 @@
 
     const SPEED_MPH_PER_UNIT = 12 * 0.621371; // Keep HUD tied to a real-world-ish mph scale
     const TARGET_MAX_MPH = 50;
-    const COLLISION_SLOW_MPH = 2;
-    const COLLISION_SLOW_DURATION_MS = 1000;
-    const COLLISION_SLOW_SPEED = COLLISION_SLOW_MPH / SPEED_MPH_PER_UNIT;
+    const COLLISION_STOP_DURATION_MS = 1000;
 
     const car = {
       x: 0,
@@ -294,7 +292,9 @@
 
       const timeScale = delta / 16.67; // Normalize against ~60 FPS
 
-      if (state.keys.has("ArrowUp")) {
+      const underSlowdown = state.slowUntil > now;
+
+      if (!underSlowdown && state.keys.has("ArrowUp")) {
         const wasStopped = car.speed <= 0;
         car.speed = Math.min(car.speed + car.acceleration * timeScale, car.maxSpeed);
         if (wasStopped && car.speed > 0 && !state.timerStarted) {
@@ -303,8 +303,8 @@
         }
       }
 
-      if (state.slowUntil > now) {
-        car.speed = Math.min(car.speed, COLLISION_SLOW_SPEED);
+      if (underSlowdown) {
+        car.speed = 0;
       }
 
       if (state.keys.has("ArrowLeft")) {
@@ -374,7 +374,8 @@
         bottom: car.distance,
       };
 
-      for (const obstacle of state.obstacles) {
+      for (let i = 0; i < state.obstacles.length; i += 1) {
+        const obstacle = state.obstacles[i];
         const obsBox = {
           left: obstacle.x - obstacle.width / 2,
           right: obstacle.x + obstacle.width / 2,
@@ -386,9 +387,10 @@
         const overlapY = carBox.bottom < obsBox.top && carBox.top > obsBox.bottom;
 
         if (overlapX && overlapY) {
-          state.slowUntil = Math.max(state.slowUntil, now + COLLISION_SLOW_DURATION_MS);
-          car.speed = COLLISION_SLOW_SPEED;
-          setStatus("You clipped debris—slowing to 2 mph for a moment.", "bad");
+          state.slowUntil = Math.max(state.slowUntil, now + COLLISION_STOP_DURATION_MS);
+          car.speed = 0;
+          state.obstacles.splice(i, 1);
+          setStatus("Obstacle hit—stopped for 1s while debris clears.", "bad");
           return;
         }
       }

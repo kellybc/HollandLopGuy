@@ -18,10 +18,10 @@ If you prefer not to run a server locally, you can enable GitHub Pages in your r
 
 ## How to play
 1. Use the **arrow keys** to steer and accelerate.
-2. Reach the finish strip while dodging debris. Bumping an obstacle just slows you down briefly—there's no instant loss. Press **R** to restart anytime.
+2. Reach the finish strip while dodging debris. Bumping an obstacle makes you stop briefly while the debris clears—there's no instant loss. Press **R** to restart anytime.
 
 ## Notes
 - Obstacles are freshly randomized on every restart.
 - The HUD shows current speed (mph), distance traveled, obstacle count, and your live run time with millisecond precision; the timer sits in the top-right corner and starts counting as soon as you accelerate.
-- Holding accelerate (Arrow Up) lets you build momentum anywhere up to **50 mph**, and if you clip debris you'll drop to **2 mph** for a second before regaining speed instead of crashing.
+- Holding accelerate (Arrow Up) lets you build momentum anywhere up to **50 mph**, and if you clip debris you'll fully stop for one second while the obstacle disappears instead of crashing.
 - Crossing the finish triggers a burst of confetti to celebrate a clean run.
