@@ -153,7 +153,7 @@
       <div class="pill"><strong>Distance:</strong> <span id="distance">0</span> m</div>
       <div class="pill"><strong>Obstacles:</strong> <span id="obstacles">0</span></div>
       <div class="pill"><strong>Goal:</strong> Reach the finish without crashing.</div>
-      <div class="pill"><strong>Controls:</strong> Arrow keys steer + accelerate.</div>
+      <div class="pill"><strong>Controls:</strong> Arrow keys steer; Up accelerates, Down slows (min 1 mph).</div>
       <div class="status" id="status">Drive forward and avoid debris. Reach the glowing finish strip!</div>
     </div>
     <div class="leaderboard" id="leaderboard">
@@ -188,8 +188,10 @@
 
     const SPEED_MPH_PER_UNIT = 12 * 0.621371; // Keep HUD tied to a real-world-ish mph scale
     const TARGET_MAX_MPH = 30;
+    const MIN_BRAKE_MPH = 1;
     const COLLISION_STOP_DURATION_MS = 2000;
     const FLASH_CYCLE_COUNT = 3;
+    const MIN_MOVING_SPEED = MIN_BRAKE_MPH / SPEED_MPH_PER_UNIT;
 
     const car = {
       x: 0,
@@ -197,6 +199,7 @@
       maxSpeed: TARGET_MAX_MPH / SPEED_MPH_PER_UNIT,
       acceleration: 0.1,
       steering: 5,
+      brakeDeceleration: 0.14,
       width: 28,
       height: 60,
       distance: 0,
@@ -381,16 +384,23 @@
 
       const underSlowdown = state.slowUntil > now;
 
-      if (!underSlowdown && state.keys.has("ArrowUp")) {
-        const wasStopped = car.speed <= 0;
-        car.speed = Math.min(car.speed + car.acceleration * timeScale, car.maxSpeed);
-        if (wasStopped && car.speed > 0 && !state.timerStarted) {
-          state.startTime = now;
-          state.timerStarted = true;
+      if (!underSlowdown) {
+        if (state.keys.has("ArrowUp")) {
+          const wasStopped = car.speed <= 0;
+          car.speed = Math.min(car.speed + car.acceleration * timeScale, car.maxSpeed);
+          if (wasStopped && car.speed > 0 && !state.timerStarted) {
+            state.startTime = now;
+            state.timerStarted = true;
+          }
         }
-      }
 
-      if (underSlowdown) {
+        if (state.keys.has("ArrowDown") && car.speed > 0) {
+          car.speed = Math.max(
+            MIN_MOVING_SPEED,
+            car.speed - car.brakeDeceleration * timeScale
+          );
+        }
+      } else {
         car.speed = 0;
       }
 
