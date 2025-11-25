@@ -157,7 +157,7 @@
       <div class="status" id="status">Drive forward and avoid debris. Reach the glowing finish strip!</div>
     </div>
     <div class="leaderboard" id="leaderboard">
-      <h2>Top Speeds</h2>
+      <h2>Top Times</h2>
       <ol id="leaderboardList"></ol>
     </div>
   </div>
@@ -267,17 +267,17 @@
     function renderLeaderboard() {
       if (!leaderboardDom.list) return;
       leaderboardDom.list.innerHTML = "";
-      state.leaderboard.forEach(({ name, speed }) => {
+      state.leaderboard.forEach(({ name, timeMs }) => {
         const li = document.createElement("li");
-        li.textContent = `${name} — ${speed} mph`;
+        li.textContent = `${name} — ${formatElapsed(timeMs)} s`;
         leaderboardDom.list.appendChild(li);
       });
     }
 
-    function recordFinish(speedMph) {
+    function recordFinish(timeMs) {
       const name = state.playerName && state.playerName.trim() ? state.playerName : "Driver";
-      state.leaderboard.push({ name, speed: speedMph });
-      state.leaderboard.sort((a, b) => b.speed - a.speed);
+      state.leaderboard.push({ name, timeMs });
+      state.leaderboard.sort((a, b) => a.timeMs - b.timeMs);
       if (state.leaderboard.length > 10) {
         state.leaderboard.length = 10;
       }
@@ -420,8 +420,8 @@
       if (car.distance >= road.length) {
         state.finished = true;
         state.stopTime = now;
-        const finishSpeed = Math.round(car.speed * SPEED_MPH_PER_UNIT);
-        recordFinish(finishSpeed);
+        const elapsed = state.startTime === null ? 0 : Math.max(0, state.stopTime - state.startTime);
+        recordFinish(elapsed);
         setStatus("You reached the finish! Press R to race again. Leaderboard updated.", "win");
         launchConfetti();
       }
