@@ -471,26 +471,57 @@
 
     function drawBanana(obstacle) {
       const { width, height } = obstacle;
-      const curvature = height * 1.4;
-      ctx.fillStyle = "#fbbf24";
-      ctx.strokeStyle = "#f59e0b";
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(-width / 2, height / 4);
-      ctx.quadraticCurveTo(-width / 4, -curvature, width / 4, -height / 8);
-      ctx.quadraticCurveTo(width / 2, curvature / 2, width / 2.4, height / 2);
-      ctx.quadraticCurveTo(0, height * 0.8, -width / 2, height / 2);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
+      const peelLength = height * 0.8;
+      const peelWidth = width * 0.24;
+      const baseRadius = width * 0.14;
+      const stemHeight = height * 0.16;
+      const peelCount = 3;
 
-      ctx.fillStyle = "#fef3c7";
+      // Stem
+      ctx.fillStyle = "#d97706";
       ctx.beginPath();
-      ctx.moveTo(-width / 2.4, height / 3);
-      ctx.quadraticCurveTo(-width / 6, -curvature * 0.5, width / 6, -height / 10);
-      ctx.quadraticCurveTo(width / 2.8, curvature * 0.32, width / 3, height / 3);
-      ctx.quadraticCurveTo(0, height * 0.65, -width / 2.4, height / 3);
+      ctx.roundRect(-peelWidth / 2, -stemHeight, peelWidth, stemHeight + baseRadius * 0.7, 4);
       ctx.fill();
+
+      // Core base
+      ctx.fillStyle = "#fcd34d";
+      ctx.beginPath();
+      ctx.arc(0, baseRadius * 0.5, baseRadius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Peels
+      for (let i = 0; i < peelCount; i += 1) {
+        const angle = (-Math.PI / 6) + (i * (Math.PI * 2)) / peelCount;
+        ctx.save();
+        ctx.rotate(angle);
+
+        const tipX = peelLength * 0.12;
+        const tipY = peelLength;
+        const curlY = peelLength * 0.72;
+        const flare = peelWidth * 0.7;
+
+        ctx.fillStyle = "#fbbf24";
+        ctx.strokeStyle = "#f59e0b";
+        ctx.lineWidth = 2.2;
+
+        ctx.beginPath();
+        ctx.moveTo(-peelWidth / 2, baseRadius * 0.5);
+        ctx.quadraticCurveTo(-peelWidth - flare, curlY * 0.55, tipX, tipY);
+        ctx.quadraticCurveTo(peelWidth + flare, curlY, peelWidth / 2, baseRadius * 0.5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Inner highlight
+        ctx.fillStyle = "#fef3c7";
+        ctx.beginPath();
+        ctx.moveTo(-peelWidth * 0.18, baseRadius * 0.5 + 2);
+        ctx.quadraticCurveTo(-peelWidth * 0.4, curlY * 0.6, tipX * 0.7, tipY * 0.9);
+        ctx.quadraticCurveTo(peelWidth * 0.4, curlY * 0.65, peelWidth * 0.18, baseRadius * 0.5 + 2);
+        ctx.fill();
+
+        ctx.restore();
+      }
     }
 
     function drawTire(obstacle) {
