@@ -266,7 +266,7 @@
       <div class="status" id="status">Drive forward and avoid debris. Reach the glowing finish strip!</div>
     </div>
     <div class="leaderboard" id="leaderboard">
-      <h2>Top Speeds</h2>
+      <h2>Top Times</h2>
       <ol id="leaderboardList"></ol>
     </div>
     <div class="win-banner" id="winBanner">
@@ -302,7 +302,7 @@
     };
 
     const STORAGE_KEYS = {
-      leaderboard: "roadDashLeaderboardTopSpeeds",
+      leaderboard: "roadDashLeaderboardTopTimes",
     };
 
     const road = {
@@ -363,19 +363,19 @@
         if (!raw) return;
         const parsed = JSON.parse(raw);
         if (!Array.isArray(parsed)) return;
-        state.leaderboard = parsed
-          .filter(
-            (entry) =>
-              entry &&
-              typeof entry.name === "string" &&
-              Number.isFinite(entry.timeMs) &&
-              Number.isFinite(entry.speedMph)
-          )
-          .sort((a, b) => b.speedMph - a.speedMph || a.timeMs - b.timeMs)
-          .slice(0, LEADERBOARD_SIZE);
-      } catch (err) {
-        console.warn("Could not load leaderboard", err);
-      }
+          state.leaderboard = parsed
+            .filter(
+              (entry) =>
+                entry &&
+                typeof entry.name === "string" &&
+                Number.isFinite(entry.timeMs) &&
+                Number.isFinite(entry.speedMph)
+            )
+            .sort((a, b) => a.timeMs - b.timeMs || b.speedMph - a.speedMph)
+            .slice(0, LEADERBOARD_SIZE);
+        } catch (err) {
+          console.warn("Could not load leaderboard", err);
+        }
     }
 
     function persistLeaderboard() {
@@ -445,7 +445,7 @@
       if (!banners.winDetails) return;
       const timeText = `Time: ${formatElapsed(timeMs)} s`;
       if (placement) {
-        banners.winDetails.textContent = `${timeText} — Place #${placement} on Top Speeds`;
+        banners.winDetails.textContent = `${timeText} — Place #${placement} on Top Times`;
       } else {
         banners.winDetails.textContent = timeText;
       }
@@ -461,7 +461,7 @@
       leaderboardDom.list.innerHTML = "";
       state.leaderboard.forEach(({ name, timeMs, speedMph }) => {
         const li = document.createElement("li");
-        li.textContent = `${name} — ${speedMph} mph (${formatElapsed(timeMs)} s)`;
+        li.textContent = `${name} — ${formatElapsed(timeMs)} s (${speedMph} mph)`;
         leaderboardDom.list.appendChild(li);
       });
     }
@@ -470,7 +470,7 @@
       const name = state.playerName && state.playerName.trim() ? state.playerName : "Driver";
       const entry = { name, timeMs, speedMph };
       state.leaderboard.push(entry);
-      state.leaderboard.sort((a, b) => b.speedMph - a.speedMph || a.timeMs - b.timeMs);
+      state.leaderboard.sort((a, b) => a.timeMs - b.timeMs || b.speedMph - a.speedMph);
       const placement = state.leaderboard.indexOf(entry) + 1;
       const qualifies = placement > 0 && placement <= LEADERBOARD_SIZE;
       if (state.leaderboard.length > LEADERBOARD_SIZE) {
