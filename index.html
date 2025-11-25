@@ -63,6 +63,39 @@
       letter-spacing: 0.02em;
     }
 
+    .leaderboard {
+      margin-top: 14px;
+      color: #cbd5e1;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: none;
+    }
+
+    .leaderboard.visible {
+      display: block;
+    }
+
+    .leaderboard h2 {
+      margin: 0 0 6px;
+      font-size: 15px;
+      color: #e2e8f0;
+      letter-spacing: 0.02em;
+    }
+
+    .leaderboard ol {
+      margin: 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 2px;
+      font-size: 14px;
+    }
+
+    .leaderboard li {
+      line-height: 1.35;
+    }
+
     .pill {
       padding: 6px 10px;
       background: rgba(255, 255, 255, 0.04);
@@ -123,6 +156,10 @@
       <div class="pill"><strong>Controls:</strong> Arrow keys steer + accelerate.</div>
       <div class="status" id="status">Drive forward and avoid debris. Reach the glowing finish strip!</div>
     </div>
+    <div class="leaderboard" id="leaderboard">
+      <h2>Top Speeds</h2>
+      <ol id="leaderboardList"></ol>
+    </div>
   </div>
 
   <script>
@@ -135,6 +172,11 @@
       obstacles: document.getElementById("obstacles"),
       timer: document.getElementById("timer"),
       status: document.getElementById("status"),
+    };
+
+    const leaderboardDom = {
+      container: document.getElementById("leaderboard"),
+      list: document.getElementById("leaderboardList"),
     };
 
     const road = {
@@ -169,6 +211,8 @@
       obstacles: [],
       finished: false,
       confetti: [],
+      leaderboard: [],
+      playerName: "Driver",
       lastTime: performance.now(),
       startTime: null,
       stopTime: null,
@@ -180,6 +224,7 @@
     };
 
     function resetGame() {
+      requestPlayerName();
       car.x = 0;
       car.speed = 0;
       car.distance = 0;
@@ -195,11 +240,46 @@
       state.flashDuration = 0;
       state.flashCycles = 0;
       setStatus("Drive forward and avoid debris. Reach the glowing finish strip!", "");
+      toggleLeaderboard(false);
+    }
+
+    function requestPlayerName() {
+      const input = prompt("Enter your driver name:", state.playerName || "Driver");
+      const sanitized = input ? input.trim() : "";
+      if (sanitized) {
+        state.playerName = sanitized;
+      }
     }
 
     function setStatus(text, variant) {
       hud.status.textContent = text;
       hud.status.className = `status ${variant}`.trim();
+    }
+
+    function toggleLeaderboard(show) {
+      if (!leaderboardDom.container) return;
+      leaderboardDom.container.classList.toggle("visible", show);
+    }
+
+    function renderLeaderboard() {
+      if (!leaderboardDom.list) return;
+      leaderboardDom.list.innerHTML = "";
+      state.leaderboard.forEach(({ name, speed }) => {
+        const li = document.createElement("li");
+        li.textContent = `${name} — ${speed} mph`;
+        leaderboardDom.list.appendChild(li);
+      });
+    }
+
+    function recordFinish(speedMph) {
+      const name = state.playerName && state.playerName.trim() ? state.playerName : "Driver";
+      state.leaderboard.push({ name, speed: speedMph });
+      state.leaderboard.sort((a, b) => b.speed - a.speed);
+      if (state.leaderboard.length > 10) {
+        state.leaderboard.length = 10;
+      }
+      renderLeaderboard();
+      toggleLeaderboard(true);
     }
 
     function generateObstacles() {
@@ -330,7 +410,9 @@
       if (car.distance >= road.length) {
         state.finished = true;
         state.stopTime = now;
-        setStatus("You reached the finish! Press R to race again.", "win");
+        const finishSpeed = Math.round(car.speed * SPEED_MPH_PER_UNIT);
+        recordFinish(finishSpeed);
+        setStatus("You reached the finish! Press R to race again. Leaderboard updated.", "win");
         launchConfetti();
       }
     }
