@@ -179,6 +179,10 @@
       list: document.getElementById("leaderboardList"),
     };
 
+    const STORAGE_KEYS = {
+      leaderboard: "roadDashLeaderboardTopTimes",
+    };
+
     const road = {
       width: 360,
       laneMarkingWidth: 4,
@@ -225,6 +229,31 @@
       flashDuration: 0,
       flashCycles: 0,
     };
+
+    function loadLeaderboard() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEYS.leaderboard);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) return;
+        state.leaderboard = parsed
+          .filter((entry) =>
+            entry && typeof entry.name === "string" && Number.isFinite(entry.timeMs)
+          )
+          .sort((a, b) => a.timeMs - b.timeMs)
+          .slice(0, 10);
+      } catch (err) {
+        console.warn("Could not load leaderboard", err);
+      }
+    }
+
+    function persistLeaderboard() {
+      try {
+        localStorage.setItem(STORAGE_KEYS.leaderboard, JSON.stringify(state.leaderboard));
+      } catch (err) {
+        console.warn("Could not save leaderboard", err);
+      }
+    }
 
     function resetGame() {
       requestPlayerName();
@@ -281,6 +310,7 @@
       if (state.leaderboard.length > 10) {
         state.leaderboard.length = 10;
       }
+      persistLeaderboard();
       renderLeaderboard();
       toggleLeaderboard(true);
     }
@@ -944,6 +974,7 @@
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
 
+    loadLeaderboard();
     resetGame();
     requestAnimationFrame(gameLoop);
   </script>
