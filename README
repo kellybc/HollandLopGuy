@@ -18,12 +18,12 @@ If you prefer not to run a server locally, you can enable GitHub Pages in your r
 
 ## How to play
 1. Use the **arrow keys** to steer and accelerate; tap/hold **Down Arrow** to slow, but it will never drop below 1 mph.
-2. Reach the finish strip while dodging debris. Bumping an obstacle makes you stop briefly while the debris clears—there's no instant loss. Press **R** to restart anytime.
+2. Reach the finish strip while dodging debris. You start with **5 health** (shown left of the timer); each obstacle hit removes a point and halts you briefly while the debris clears. At **0 health** a big “You LOSE !” sign appears and the run ends. Press **R** to restart anytime.
 
 ## Notes
 - Obstacles are freshly randomized on every restart.
-- The HUD shows current speed (mph), distance traveled (in meters), obstacle count, and your live run time with millisecond precision; the timer sits in the top-right corner and starts counting as soon as you accelerate.
-- Holding accelerate (Arrow Up) lets you build momentum anywhere up to **30 mph**, and if you clip debris you'll fully stop for two seconds while the obstacle disappears and the car flashes red/blue instead of crashing. The **Down Arrow** trims speed but won't let you drop below **1 mph** so you stay in motion.
+- The HUD shows current speed (mph), distance traveled (in meters), obstacle count, a **5-point health bar**, and your live run time with millisecond precision; the timer and health bar sit together in the top-right corner and the clock starts counting as soon as you accelerate.
+- Holding accelerate (Arrow Up) lets you build momentum anywhere up to **30 mph**. If you clip debris you'll fully stop for two seconds, lose a health point while the obstacle disappears, and the car flashes red/blue instead of instantly crashing. The **Down Arrow** trims speed but won't let you drop below **1 mph** so you stay in motion.
 - Crossing the finish triggers a burst of confetti to celebrate a clean run.
 - The road stretches a full **20,000 meters** from start to finish, giving you a long but finite haul to complete a run.
 - At the start of each run you’ll be asked for a driver name, and when you finish the top 10 fastest times (with names) appear in the leaderboard. Past runs are saved locally (per browser) so earlier players’ best times stay visible for the next drivers, even after refreshes.
