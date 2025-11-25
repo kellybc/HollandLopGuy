@@ -27,4 +27,4 @@ If you prefer not to run a server locally, you can enable GitHub Pages in your r
 - Crossing the finish triggers a burst of confetti plus a big “CONGRATULATIONS YOU WON” banner above the action to celebrate a clean run.
 - The road stretches a full **20,000 meters** from start to finish, giving you a long but finite haul to complete a run.
 - The distance pill now includes a white progress bar that fills as you close in on the 20,000 m finish line.
-- At the start of each run you’ll be asked for a driver name, and when you finish the top 10 fastest times (with names) appear in the leaderboard. Past runs are saved locally (per browser) so earlier players’ best times stay visible for the next drivers, even after refreshes.
+- At the start of each run you’ll be asked for a driver name. When you finish, your run time appears beneath the win banner; if your finish speed lands in the **top 100 fastest speeds**, your leaderboard place (1–100) is shown too. The leaderboard tracks the top 100 speeds (with names) and persists locally so earlier players’ best runs stay visible for the next drivers, even after refreshes.
