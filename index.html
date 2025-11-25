@@ -272,7 +272,7 @@
       state.flashDuration = 0;
       state.flashCycles = 0;
       setStatus("Drive forward and avoid debris. Reach the glowing finish strip!", "");
-      toggleLeaderboard(false);
+      toggleLeaderboard(state.leaderboard.length > 0);
     }
 
     function requestPlayerName() {
@@ -975,6 +975,8 @@
     window.addEventListener("keyup", handleKeyUp);
 
     loadLeaderboard();
+    renderLeaderboard();
+    toggleLeaderboard(state.leaderboard.length > 0);
     resetGame();
     requestAnimationFrame(gameLoop);
   </script>
