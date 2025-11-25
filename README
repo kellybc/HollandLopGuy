@@ -21,7 +21,7 @@ If you prefer not to run a server locally, you can enable GitHub Pages in your r
 2. Reach the finish strip while dodging debris. You start with **5 health** (shown left of the timer); each obstacle hit removes a point and halts you briefly while the debris clears. At **0 health** a big “You LOSE !” sign appears, the car bursts into bits on screen, and the run ends. Press **R** to restart anytime.
 
 ## Notes
-- Obstacles are freshly randomized on every restart.
+- Obstacles are freshly randomized on every restart, and the obstacle counter ticks down each time you clear another piece of debris on the road.
 - The HUD shows current speed (mph), distance traveled (in meters), obstacle count, a **5-point health bar**, and your live run time with millisecond precision; the timer and health bar sit together in the top-right corner and the clock starts counting as soon as you accelerate.
 - Holding accelerate (Arrow Up) lets you build momentum anywhere up to **30 mph**. If you clip debris you'll fully stop for two seconds, lose a health point while the obstacle disappears, and the car flashes red/blue instead of instantly crashing. The **Down Arrow** trims speed but won't let you drop below **1 mph** so you stay in motion.
 - Crossing the finish triggers a burst of confetti plus a big “CONGRATULATIONS YOU WON” banner above the action to celebrate a clean run.
