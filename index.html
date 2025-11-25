@@ -117,7 +117,7 @@
     <canvas id="gameCanvas" width="900" height="540" aria-label="Road driving game"></canvas>
     <div class="hud" id="hud">
       <div class="pill"><strong>Speed:</strong> <span id="speed">0</span> mph</div>
-      <div class="pill"><strong>Distance:</strong> <span id="distance">0</span> m</div>
+      <div class="pill"><strong>Distance:</strong> <span id="distance">0</span> km</div>
       <div class="pill"><strong>Obstacles:</strong> <span id="obstacles">0</span></div>
       <div class="pill"><strong>Goal:</strong> Reach the finish without crashing.</div>
       <div class="pill"><strong>Controls:</strong> Arrow keys steer + accelerate.</div>
@@ -141,7 +141,7 @@
       width: 360,
       laneMarkingWidth: 4,
       shoulder: 40,
-      length: 2600,
+      length: 20_000_000,
     };
 
     const SPEED_MPH_PER_UNIT = 12 * 0.621371; // Keep HUD tied to a real-world-ish mph scale
@@ -814,7 +814,7 @@
 
     function updateHud() {
       hud.speed.textContent = Math.round(car.speed * SPEED_MPH_PER_UNIT);
-      hud.distance.textContent = Math.round(car.distance);
+      hud.distance.textContent = (car.distance / 1000).toFixed(3);
       hud.obstacles.textContent = state.obstacles.length;
       const referenceTime = state.stopTime ?? performance.now();
       const elapsed =

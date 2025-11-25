@@ -22,6 +22,7 @@ If you prefer not to run a server locally, you can enable GitHub Pages in your r
 
 ## Notes
 - Obstacles are freshly randomized on every restart.
-- The HUD shows current speed (mph), distance traveled, obstacle count, and your live run time with millisecond precision; the timer sits in the top-right corner and starts counting as soon as you accelerate.
+- The HUD shows current speed (mph), distance traveled (in kilometers), obstacle count, and your live run time with millisecond precision; the timer sits in the top-right corner and starts counting as soon as you accelerate.
 - Holding accelerate (Arrow Up) lets you build momentum anywhere up to **50 mph**, and if you clip debris you'll fully stop for two seconds while the obstacle disappears and the car flashes red/blue instead of crashing.
 - Crossing the finish triggers a burst of confetti to celebrate a clean run.
+- The road stretches a full **20,000 km** from start to finish, giving you a very long haul to complete a run.
