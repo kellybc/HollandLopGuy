@@ -146,7 +146,8 @@
 
     const SPEED_MPH_PER_UNIT = 12 * 0.621371; // Keep HUD tied to a real-world-ish mph scale
     const TARGET_MAX_MPH = 50;
-    const COLLISION_STOP_DURATION_MS = 1000;
+    const COLLISION_STOP_DURATION_MS = 2000;
+    const FLASH_CYCLE_COUNT = 3;
 
     const car = {
       x: 0,
@@ -173,6 +174,9 @@
       stopTime: null,
       timerStarted: false,
       slowUntil: 0,
+      flashStart: null,
+      flashDuration: 0,
+      flashCycles: 0,
     };
 
     function resetGame() {
@@ -187,6 +191,9 @@
       state.stopTime = null;
       state.timerStarted = false;
       state.slowUntil = 0;
+      state.flashStart = null;
+      state.flashDuration = 0;
+      state.flashCycles = 0;
       setStatus("Drive forward and avoid debris. Reach the glowing finish strip!", "");
     }
 
@@ -390,7 +397,10 @@
           state.slowUntil = Math.max(state.slowUntil, now + COLLISION_STOP_DURATION_MS);
           car.speed = 0;
           state.obstacles.splice(i, 1);
-          setStatus("Obstacle hit—stopped for 1s while debris clears.", "bad");
+          state.flashStart = now;
+          state.flashDuration = COLLISION_STOP_DURATION_MS;
+          state.flashCycles = FLASH_CYCLE_COUNT;
+          setStatus("Obstacle hit—stopped for 2s while debris clears.", "bad");
           return;
         }
       }
@@ -569,6 +579,41 @@
       ctx.fill();
     }
 
+    function getCarPalette(mode) {
+      switch (mode) {
+        case "red":
+          return {
+            bodyStart: "#fca5a5",
+            bodyEnd: "#ef4444",
+            nose: "#fecaca",
+            wing: "#dc2626",
+            side: "#f87171",
+            rear: "#dc2626",
+            roll: "#991b1b",
+          };
+        case "blue":
+          return {
+            bodyStart: "#bfdbfe",
+            bodyEnd: "#3b82f6",
+            nose: "#e0f2fe",
+            wing: "#1d4ed8",
+            side: "#60a5fa",
+            rear: "#1d4ed8",
+            roll: "#0c4a6e",
+          };
+        default:
+          return {
+            bodyStart: "#38bdf8",
+            bodyEnd: "#0284c7",
+            nose: "#bae6fd",
+            wing: "#1d4ed8",
+            side: "#0ea5e9",
+            rear: "#1d4ed8",
+            roll: "#0c4a6e",
+          };
+      }
+    }
+
     function drawCar() {
       const roadCenter = canvas.width / 2;
       const x = roadCenter + car.x;
@@ -579,16 +624,30 @@
       const bodyTop = top + car.height * 0.22;
       const bodyHeight = car.height * 0.7;
 
+      let paletteMode = "default";
+      if (state.flashStart !== null) {
+        const elapsed = state.lastTime - state.flashStart;
+        const totalDuration = state.flashDuration;
+        const cycles = state.flashCycles || FLASH_CYCLE_COUNT;
+        if (elapsed >= 0 && elapsed < totalDuration) {
+          const totalPhases = cycles * 2;
+          const phase = Math.floor((elapsed / totalDuration) * totalPhases);
+          paletteMode = phase % 2 === 0 ? "red" : "blue";
+        }
+      }
+
+      const palette = getCarPalette(paletteMode);
+
       // Main chassis
       const bodyGradient = ctx.createLinearGradient(x, top, x, y);
-      bodyGradient.addColorStop(0, "#38bdf8");
-      bodyGradient.addColorStop(1, "#0284c7");
+      bodyGradient.addColorStop(0, palette.bodyStart);
+      bodyGradient.addColorStop(1, palette.bodyEnd);
       ctx.fillStyle = bodyGradient;
       ctx.roundRect(x - bodyWidth / 2, bodyTop, bodyWidth, bodyHeight, car.height * 0.18);
       ctx.fill();
 
       // Nose cone taper
-      ctx.fillStyle = "#bae6fd";
+      ctx.fillStyle = palette.nose;
       ctx.beginPath();
       ctx.moveTo(x - bodyWidth * 0.4, bodyTop + car.height * 0.1);
       ctx.lineTo(x + bodyWidth * 0.4, bodyTop + car.height * 0.1);
@@ -597,7 +656,7 @@
       ctx.fill();
 
       // Front wing
-      ctx.fillStyle = "#1d4ed8";
+      ctx.fillStyle = palette.wing;
       ctx.roundRect(
         x - car.width * 0.75,
         top + car.height * 0.12,
@@ -608,7 +667,7 @@
       ctx.fill();
 
       // Side pods
-      ctx.fillStyle = "#0ea5e9";
+      ctx.fillStyle = palette.side;
       ctx.roundRect(
         x - car.width * 0.55,
         top + car.height * 0.46,
@@ -619,7 +678,7 @@
       ctx.fill();
 
       // Rear wing
-      ctx.fillStyle = "#1d4ed8";
+      ctx.fillStyle = palette.rear;
       ctx.roundRect(
         x - car.width * 0.45,
         y - car.height * 0.2,
@@ -641,7 +700,7 @@
       ctx.fill();
 
       // Roll hoop
-      ctx.fillStyle = "#0c4a6e";
+      ctx.fillStyle = palette.roll;
       ctx.roundRect(
         x - car.width * 0.08,
         top + car.height * 0.28,
