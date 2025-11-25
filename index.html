@@ -297,6 +297,7 @@
       obstacles: [],
       finished: false,
       confetti: [],
+      explosion: [],
       leaderboard: [],
       playerName: "Driver",
       health: MAX_HEALTH,
@@ -308,6 +309,7 @@
       flashStart: null,
       flashDuration: 0,
       flashCycles: 0,
+      carDestroyed: false,
     };
 
     function loadLeaderboard() {
@@ -342,6 +344,7 @@
       car.distance = 0;
       state.finished = false;
       state.confetti = [];
+      state.explosion = [];
       state.obstacles = generateObstacles();
       state.lastTime = performance.now();
       state.startTime = null;
@@ -352,6 +355,7 @@
       state.flashStart = null;
       state.flashDuration = 0;
       state.flashCycles = 0;
+      state.carDestroyed = false;
       toggleLoseBanner(false);
       toggleWinBanner(false);
       setStatus("Drive forward and avoid debris. Reach the glowing finish strip!", "");
@@ -623,6 +627,8 @@
             setStatus("You LOSE ! Press R to try again.", "bad");
             toggleWinBanner(false);
             toggleLoseBanner(true);
+            state.carDestroyed = true;
+            launchExplosion();
           } else {
             setStatus("Obstacle hit—stopped for 2s while debris clears.", "bad");
           }
@@ -1015,7 +1021,10 @@
       drawFinishLine();
       drawObstacles();
       drawConfetti();
-      drawCar();
+      drawExplosion();
+      if (!state.carDestroyed) {
+        drawCar();
+      }
     }
 
     function drawConfetti() {
@@ -1025,6 +1034,18 @@
         ctx.rotate(piece.rotation);
         ctx.fillStyle = piece.color;
         ctx.fillRect(-piece.size / 2, -piece.size / 2, piece.size, piece.size * 0.8);
+        ctx.restore();
+      });
+    }
+
+    function drawExplosion() {
+      state.explosion.forEach((piece) => {
+        ctx.save();
+        ctx.translate(piece.x, piece.y);
+        ctx.rotate(piece.rotation);
+        ctx.fillStyle = piece.color;
+        ctx.globalAlpha = Math.max(0, piece.life / piece.initialLife);
+        ctx.fillRect(-piece.size / 2, -piece.size / 2, piece.size, piece.size);
         ctx.restore();
       });
     }
@@ -1064,10 +1085,52 @@
 
       update(delta, now);
       updateConfetti();
+      updateExplosion();
       drawScene();
       updateHud();
 
       requestAnimationFrame(gameLoop);
+    }
+
+    function launchExplosion() {
+      state.explosion = [];
+      const roadCenter = canvas.width / 2;
+      const originX = roadCenter + car.x;
+      const originY = camera.baseY - car.height * 0.4;
+      const colors = ["#fca5a5", "#3b82f6", "#38bdf8", "#0ea5e9", "#e2e8f0", "#f97316"];
+      const pieces = 120;
+
+      for (let i = 0; i < pieces; i += 1) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 4 + Math.random() * 6;
+        const size = 3 + Math.random() * 6;
+        const life = 80 + Math.random() * 50;
+        state.explosion.push({
+          x: originX,
+          y: originY,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          rotation: Math.random() * Math.PI * 2,
+          rotationSpeed: (Math.random() - 0.5) * 0.3,
+          size,
+          color: colors[i % colors.length],
+          life,
+          initialLife: life,
+        });
+      }
+    }
+
+    function updateExplosion() {
+      const gravity = 0.35;
+      state.explosion.forEach((piece) => {
+        piece.vy += gravity;
+        piece.x += piece.vx;
+        piece.y += piece.vy;
+        piece.rotation += piece.rotationSpeed;
+        piece.life -= 1;
+      });
+
+      state.explosion = state.explosion.filter((piece) => piece.life > 0 && piece.y < canvas.height + 80);
     }
 
     function handleKeyDown(event) {

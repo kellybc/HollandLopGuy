@@ -18,7 +18,7 @@ If you prefer not to run a server locally, you can enable GitHub Pages in your r
 
 ## How to play
 1. Use the **arrow keys** to steer and accelerate; tap/hold **Down Arrow** to slow, but it will never drop below 1 mph.
-2. Reach the finish strip while dodging debris. You start with **5 health** (shown left of the timer); each obstacle hit removes a point and halts you briefly while the debris clears. At **0 health** a big “You LOSE !” sign appears and the run ends. Press **R** to restart anytime.
+2. Reach the finish strip while dodging debris. You start with **5 health** (shown left of the timer); each obstacle hit removes a point and halts you briefly while the debris clears. At **0 health** a big “You LOSE !” sign appears, the car bursts into bits on screen, and the run ends. Press **R** to restart anytime.
 
 ## Notes
 - Obstacles are freshly randomized on every restart.
