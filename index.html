@@ -168,6 +168,26 @@
       color: #38bdf8;
     }
 
+    .win-banner {
+      position: absolute;
+      top: 12%;
+      left: 0;
+      right: 0;
+      display: none;
+      justify-content: center;
+      pointer-events: none;
+      font-size: 40px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      color: #22d3ee;
+      text-shadow: 0 0 18px rgba(34, 211, 238, 0.8), 0 0 50px rgba(0, 0, 0, 0.6);
+      z-index: 3;
+    }
+
+    .win-banner.visible {
+      display: flex;
+    }
+
     .lose-banner {
       position: absolute;
       inset: 0;
@@ -210,6 +230,7 @@
       <h2>Top Times</h2>
       <ol id="leaderboardList"></ol>
     </div>
+    <div class="win-banner" id="winBanner">CONGRATULATIONS YOU WON</div>
     <div class="lose-banner" id="loseBanner">You LOSE !</div>
   </div>
 
@@ -232,6 +253,7 @@
     };
 
     const banners = {
+      win: document.getElementById("winBanner"),
       lose: document.getElementById("loseBanner"),
     };
 
@@ -331,6 +353,7 @@
       state.flashDuration = 0;
       state.flashCycles = 0;
       toggleLoseBanner(false);
+      toggleWinBanner(false);
       setStatus("Drive forward and avoid debris. Reach the glowing finish strip!", "");
       toggleLeaderboard(state.leaderboard.length > 0);
     }
@@ -351,6 +374,11 @@
     function toggleLoseBanner(show) {
       if (!banners.lose) return;
       banners.lose.classList.toggle("visible", show);
+    }
+
+    function toggleWinBanner(show) {
+      if (!banners.win) return;
+      banners.win.classList.toggle("visible", show);
     }
 
     function toggleLeaderboard(show) {
@@ -518,6 +546,7 @@
         const elapsed = state.startTime === null ? 0 : Math.max(0, state.stopTime - state.startTime);
         recordFinish(elapsed);
         setStatus("You reached the finish! Press R to race again. Leaderboard updated.", "win");
+        toggleWinBanner(true);
         launchConfetti();
       }
     }
@@ -592,6 +621,7 @@
             state.finished = true;
             state.stopTime = now;
             setStatus("You LOSE ! Press R to try again.", "bad");
+            toggleWinBanner(false);
             toggleLoseBanner(true);
           } else {
             setStatus("Obstacle hit—stopped for 2s while debris clears.", "bad");
