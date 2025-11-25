@@ -106,6 +106,30 @@
       gap: 6px;
     }
 
+    .distance-pill {
+      flex-wrap: wrap;
+    }
+
+    .distance-meter {
+      position: relative;
+      width: 160px;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 999px;
+      overflow: hidden;
+      box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    .distance-fill {
+      position: absolute;
+      inset: 0;
+      width: 0;
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.7));
+      box-shadow: 0 0 12px rgba(255, 255, 255, 0.18);
+      transition: width 0.12s ease-out;
+    }
+
     .top-bar {
       position: absolute;
       top: 12px;
@@ -220,7 +244,12 @@
     <canvas id="gameCanvas" width="900" height="540" aria-label="Road driving game"></canvas>
     <div class="hud" id="hud">
       <div class="pill"><strong>Speed:</strong> <span id="speed">0</span> mph</div>
-      <div class="pill"><strong>Distance:</strong> <span id="distance">0</span> m</div>
+      <div class="pill distance-pill">
+        <strong>Distance:</strong> <span id="distance">0</span> m
+        <div class="distance-meter" aria-hidden="true">
+          <div class="distance-fill" id="distanceFill"></div>
+        </div>
+      </div>
       <div class="pill"><strong>Obstacles:</strong> <span id="obstacles">0</span></div>
       <div class="pill"><strong>Goal:</strong> Reach the finish without crashing.</div>
       <div class="pill"><strong>Controls:</strong> Arrow keys steer; Up accelerates, Down slows (min 1 mph).</div>
@@ -241,6 +270,7 @@
     const hud = {
       speed: document.getElementById("speed"),
       distance: document.getElementById("distance"),
+      distanceFill: document.getElementById("distanceFill"),
       obstacles: document.getElementById("obstacles"),
       timer: document.getElementById("timer"),
       status: document.getElementById("status"),
@@ -1066,7 +1096,14 @@
       const elapsed =
         state.startTime === null ? 0 : Math.max(0, referenceTime - state.startTime);
       hud.timer.textContent = formatElapsed(elapsed);
+      updateDistanceBar();
       updateHealthBar();
+    }
+
+    function updateDistanceBar() {
+      if (!hud.distanceFill) return;
+      const progress = Math.min(Math.max(car.distance / road.length, 0), 1);
+      hud.distanceFill.style.width = `${progress * 100}%`;
     }
 
     function updateHealthBar() {
