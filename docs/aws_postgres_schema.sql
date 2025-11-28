@@ -1,5 +1,5 @@
--- Supabase schema for SciNet / ResearchOS
--- Focuses on dynamic experiment data capture and PDF embeddings
+-- AWS Postgres (Aurora/RDS) schema for SciNet / ResearchOS
+-- Focuses on dynamic experiment data capture and PDF embeddings without Supabase-specific tables.
 
 -- Extensions
 create extension if not exists "uuid-ossp";
@@ -15,10 +15,11 @@ begin
 end;
 $$ language plpgsql;
 
--- Projects represent independent research contexts.
+-- Projects represent independent research contexts. The owner_id should map to your identity
+-- provider (e.g., Cognito user sub stored in an application users table or service account id).
 create table if not exists projects (
     id uuid primary key default gen_random_uuid(),
-    owner_id uuid references auth.users(id) on delete set null,
+    owner_id uuid,
     name text not null,
     description text,
     status text not null default 'draft',
@@ -126,7 +127,7 @@ create table if not exists project_documents (
     project_id uuid not null references projects(id) on delete cascade,
     title text,
     source_url text,
-    storage_path text not null,
+    storage_path text not null, -- e.g., S3 key such as s3://bucket/prefix/file.pdf
     token_count integer,
     checksum text,
     metadata jsonb not null default '{}'::jsonb,

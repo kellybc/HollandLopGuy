@@ -1,4 +1,4 @@
-// TypeScript interfaces mirroring the Supabase schema for SciNet / ResearchOS.
+// TypeScript interfaces mirroring the AWS Postgres schema for SciNet / ResearchOS.
 // These focus on dynamic variable/metric capture and document embeddings.
 
 export type DataType = 'number' | 'categorical' | 'boolean' | 'text' | 'json';
@@ -87,7 +87,7 @@ export interface ProjectDocument {
   project_id: string;
   title?: string | null;
   source_url?: string | null;
-  storage_path: string; // Supabase storage key
+  storage_path: string; // S3 key or URL to the stored asset
   token_count?: number | null;
   checksum?: string | null;
   metadata: JsonObject;
@@ -101,7 +101,7 @@ export interface DocumentChunk {
   chunk_index: number;
   content: string;
   token_count?: number | null;
-  embedding: number[]; // pgvector values retrieved via Supabase client
+  embedding: number[]; // pgvector values retrieved via your Postgres client
   metadata: JsonObject;
   created_at: string;
 }
