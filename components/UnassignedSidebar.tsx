@@ -13,10 +13,17 @@ type Props = {
 function DraggableTemplate({ id, label, subtitle, canEdit }: { id: string; label: string; subtitle: string; canEdit: boolean }) {
   const { attributes, listeners, setNodeRef } = useDraggable({ id, disabled: !canEdit });
   return (
-    <div ref={setNodeRef} {...listeners} {...attributes} className="mb-2 rounded border bg-white p-2 text-xs shadow-sm">
+    <button
+      ref={setNodeRef}
+      type="button"
+      style={{ touchAction: 'none' }}
+      {...listeners}
+      {...attributes}
+      className="mb-2 w-full select-none rounded border bg-white p-2 text-left text-xs shadow-sm cursor-grab active:cursor-grabbing"
+    >
       <p className="font-semibold">{label}</p>
       <p className="text-slate-600">{subtitle}</p>
-    </div>
+    </button>
   );
 }
 

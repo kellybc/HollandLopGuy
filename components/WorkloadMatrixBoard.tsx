@@ -100,24 +100,24 @@ export function WorkloadMatrixBoard() {
   };
 
   return (
-    <div className="flex gap-4">
-      <div className="min-w-0 flex-1">
-        <div className="mb-3 flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold">Academic Year Planning Board</h2>
-            <p className="text-sm text-slate-600">Graphical blocks scale by workload units (1 WU = 40px).</p>
+    <DndContext onDragEnd={handleDragEnd}>
+      <div className="flex gap-4">
+        <div className="min-w-0 flex-1">
+          <div className="mb-3 flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold">Academic Year Planning Board</h2>
+              <p className="text-sm text-slate-600">Graphical blocks scale by workload units (1 WU = 40px).</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <select className="rounded border p-2 text-sm" value={selectedScenario} onChange={(e) => setSelectedScenario(e.target.value)}>
+                {scenarios.map((s) => <option value={s.id} key={s.id}>{s.name}</option>)}
+              </select>
+              <button className="rounded border px-2 py-1 text-xs" onClick={() => saveCsv('faculty-summary.csv', exportFacultySummary(faculty, scenarioAssignments))}>Export Faculty CSV</button>
+              <button className="rounded border px-2 py-1 text-xs" onClick={() => saveCsv('course-coverage.csv', exportCourseCoverage(courses, scenarioAssignments))}>Export Coverage CSV</button>
+              <button className="rounded border px-2 py-1 text-xs" onClick={() => saveCsv('assignments.csv', exportAssignments(scenarioAssignments))}>Export Assignments</button>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <select className="rounded border p-2 text-sm" value={selectedScenario} onChange={(e) => setSelectedScenario(e.target.value)}>
-              {scenarios.map((s) => <option value={s.id} key={s.id}>{s.name}</option>)}
-            </select>
-            <button className="rounded border px-2 py-1 text-xs" onClick={() => saveCsv('faculty-summary.csv', exportFacultySummary(faculty, scenarioAssignments))}>Export Faculty CSV</button>
-            <button className="rounded border px-2 py-1 text-xs" onClick={() => saveCsv('course-coverage.csv', exportCourseCoverage(courses, scenarioAssignments))}>Export Coverage CSV</button>
-            <button className="rounded border px-2 py-1 text-xs" onClick={() => saveCsv('assignments.csv', exportAssignments(scenarioAssignments))}>Export Assignments</button>
-          </div>
-        </div>
 
-        <DndContext onDragEnd={handleDragEnd}>
           <div className="grid matrix-grid gap-2 overflow-auto">
             <div className="rounded-lg border bg-slate-200 p-2 text-sm font-semibold">Faculty</div>
             {quarters.map((q) => <div key={q} className="rounded-lg border bg-slate-200 p-2 text-sm font-semibold">{q}</div>)}
@@ -144,19 +144,19 @@ export function WorkloadMatrixBoard() {
               </Fragment>
             ))}
           </div>
-        </DndContext>
 
-        <div className="mt-4 rounded-lg border bg-white p-3">
-          <h3 className="mb-2 text-sm font-semibold">Validation Warnings</h3>
-          <ul className="list-disc space-y-1 pl-6 text-sm text-slate-700">
-            {warnings.map((w) => <li key={w}>{w}</li>)}
-          </ul>
+          <div className="mt-4 rounded-lg border bg-white p-3">
+            <h3 className="mb-2 text-sm font-semibold">Validation Warnings</h3>
+            <ul className="list-disc space-y-1 pl-6 text-sm text-slate-700">
+              {warnings.map((w) => <li key={w}>{w}</li>)}
+            </ul>
+          </div>
+
+          <AssignmentModal assignment={selected} onClose={() => setSelected(null)} onSave={(draft) => { setAssignments((prev) => prev.map((a) => (a.id === draft.id ? { ...draft, updated_at: new Date().toISOString() } : a))); setSelected(null); }} readOnly={!canEdit} />
         </div>
 
-        <AssignmentModal assignment={selected} onClose={() => setSelected(null)} onSave={(draft) => { setAssignments((prev) => prev.map((a) => (a.id === draft.id ? { ...draft, updated_at: new Date().toISOString() } : a))); setSelected(null); }} readOnly={!canEdit} />
+        <UnassignedSidebar courses={courses} activities={activities} assignments={scenarioAssignments} canEdit={canEdit} />
       </div>
-
-      <UnassignedSidebar courses={courses} activities={activities} assignments={scenarioAssignments} canEdit={canEdit} />
-    </div>
+    </DndContext>
   );
 }
