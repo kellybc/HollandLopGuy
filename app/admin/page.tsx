@@ -11,7 +11,7 @@ function makeId() {
 }
 
 export default function AdminPage() {
-  const { faculty, courses, activities, assignments, setFaculty, setCourses, setActivities, setAssignments, resetToSeed } = useAppData();
+  const { faculty, courses, activities, assignments, academicYears, selectedAcademicYear, setSelectedAcademicYear, setFaculty, setCourses, setActivities, setAssignments, resetToSeed } = useAppData();
   const role = process.env.NEXT_PUBLIC_APP_ROLE ?? 'admin';
 
   const [newFaculty, setNewFaculty] = useState<{ prefix: string; name: string; program: Program; rank_or_role: string; annual_workload_target: number; fall_target: number; winter_target: number; spring_target: number; summer_target: number }>({ prefix: 'Dr.', name: '', program: 'Mechanical Engineering', rank_or_role: 'Faculty', annual_workload_target: 27, fall_target: 9, winter_target: 9, spring_target: 9, summer_target: 0 });
@@ -51,14 +51,14 @@ export default function AdminPage() {
     if (isCourse && !course) return;
     if (!isCourse && !activity) return;
 
-    const section = isCourse ? assignments.filter((a) => a.course_id === course?.id).length + 1 : null;
+    const section = isCourse ? assignments.filter((a) => a.academic_year === selectedAcademicYear && a.course_id === course?.id).length + 1 : null;
     setAssignments((prev) => [
       ...prev,
       {
         id: makeId(),
         faculty_id: newAssignment.faculty_id,
         scenario_id: 'sc-base',
-        academic_year: '2026-2027',
+        academic_year: selectedAcademicYear,
         quarter: newAssignment.quarter,
         item_type: newAssignment.item_type,
         course_id: isCourse ? course!.id : null,
@@ -81,7 +81,12 @@ export default function AdminPage() {
       <section className="rounded-lg border bg-white p-4">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-lg font-semibold">Admin Panel</h2>
-          <button onClick={resetToSeed} className="rounded border border-red-300 px-3 py-2 text-sm text-red-700">Reset to Seed Defaults</button>
+          <div className="flex items-center gap-2">
+            <select className="rounded border p-2 text-sm" value={selectedAcademicYear} onChange={(e) => setSelectedAcademicYear(e.target.value)}>
+              {academicYears.map((y) => <option key={y.id} value={y.label}>{y.label}</option>)}
+            </select>
+            <button onClick={resetToSeed} className="rounded border border-red-300 px-3 py-2 text-sm text-red-700">Reset to Seed Defaults</button>
+          </div>
         </div>
       </section>
 
@@ -106,7 +111,14 @@ export default function AdminPage() {
             <tbody>
               {faculty.map((f) => (
                 <tr key={f.id}>
-                  <td className="border p-2">{`${f.prefix ?? ''} ${f.name}`.trim()}</td>
+                  <td className="border p-2">
+                    <div className="flex gap-1">
+                      <select className="rounded border p-1 text-xs" value={f.prefix ?? 'Dr.'} onChange={(e) => setFaculty((prev) => prev.map((row) => row.id === f.id ? { ...row, prefix: e.target.value } : row))}>
+                        {['Dr.', 'Ms.', 'Mrs.', 'Mr.', 'Prof.'].map((p) => <option key={p} value={p}>{p}</option>)}
+                      </select>
+                      <input className="w-full rounded border p-1 text-xs" value={f.name} onChange={(e) => setFaculty((prev) => prev.map((row) => row.id === f.id ? { ...row, name: e.target.value } : row))} />
+                    </div>
+                  </td>
                   {(['annual_workload_target', 'fall_target', 'winter_target', 'spring_target', 'summer_target'] as const).map((field) => (
                     <td key={field} className="border p-2"><input type="number" className="w-20 rounded border p-1" value={f[field]} onChange={(e) => setFaculty((prev) => prev.map((row) => row.id === f.id ? { ...row, [field]: Number(e.target.value) } : row))} /></td>
                   ))}
@@ -131,7 +143,11 @@ export default function AdminPage() {
         <div className="grid gap-2 md:grid-cols-2">
           {courses.map((c) => (
             <div key={c.id} className="rounded border p-2 text-sm">
-              <p className="font-medium">{c.prefix} {c.number} {c.title}</p>
+              <div className="flex gap-1">
+                <input className="w-16 rounded border p-1 text-xs" value={c.prefix} onChange={(e) => setCourses((prev) => prev.map((row) => row.id === c.id ? { ...row, prefix: e.target.value } : row))} />
+                <input className="w-16 rounded border p-1 text-xs" value={c.number} onChange={(e) => setCourses((prev) => prev.map((row) => row.id === c.id ? { ...row, number: e.target.value } : row))} />
+                <input className="w-full rounded border p-1 text-xs" value={c.title} onChange={(e) => setCourses((prev) => prev.map((row) => row.id === c.id ? { ...row, title: e.target.value } : row))} />
+              </div>
               <div className="mt-2 flex items-center gap-3">
                 <label className="text-xs">Default WU<input type="number" className="ml-2 w-16 rounded border p-1" value={c.default_workload_units} onChange={(e) => {
                   const nextWu = Number(e.target.value);
@@ -165,7 +181,7 @@ export default function AdminPage() {
           <table className="w-full border-collapse text-sm">
             <thead><tr><th className="border p-2 text-left">Label</th><th className="border p-2">Faculty</th><th className="border p-2">Quarter</th><th className="border p-2">WU</th><th className="border p-2">Status</th><th className="border p-2">Delete</th></tr></thead>
             <tbody>
-              {assignments.map((a) => (
+              {assignments.filter((a) => a.academic_year === selectedAcademicYear).map((a) => (
                 <tr key={a.id}>
                   <td className="border p-2">{a.label}</td>
                   <td className="border p-2"><select className="rounded border p-1" value={a.faculty_id} onChange={(e) => setAssignments((prev) => prev.map((row) => row.id === a.id ? { ...row, faculty_id: e.target.value } : row))}>{faculty.map((f) => <option key={f.id} value={f.id}>{`${f.prefix ?? ''} ${f.name}`.trim()}</option>)}</select></td>

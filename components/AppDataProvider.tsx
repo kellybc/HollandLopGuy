@@ -2,20 +2,23 @@
 
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
-import { activities as seedActivities, courses as seedCourses, faculty as seedFaculty, initialAssignments, qualifications as seedQualifications, scenarios as seedScenarios } from '@/lib/seed-data';
-import { Activity, Course, Faculty, FacultyCourseQualification, Scenario, WorkloadAssignment } from '@/lib/types';
+import { academicYears as seedAcademicYears, activities as seedActivities, courses as seedCourses, faculty as seedFaculty, initialAssignments, qualifications as seedQualifications, scenarios as seedScenarios } from '@/lib/seed-data';
+import { AcademicYear, Activity, Course, Faculty, FacultyCourseQualification, Scenario, WorkloadAssignment } from '@/lib/types';
 
 type AppDataState = {
   faculty: Faculty[];
   courses: Course[];
   activities: Activity[];
   scenarios: Scenario[];
+  academicYears: AcademicYear[];
+  selectedAcademicYear: string;
   qualifications: FacultyCourseQualification[];
   assignments: WorkloadAssignment[];
   setFaculty: Dispatch<SetStateAction<Faculty[]>>;
   setCourses: Dispatch<SetStateAction<Course[]>>;
   setActivities: Dispatch<SetStateAction<Activity[]>>;
   setAssignments: Dispatch<SetStateAction<WorkloadAssignment[]>>;
+  setSelectedAcademicYear: Dispatch<SetStateAction<string>>;
   resetToSeed: () => void;
 };
 
@@ -28,6 +31,8 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const [courses, setCourses] = useState<Course[]>(seedCourses);
   const [activities, setActivities] = useState<Activity[]>(seedActivities);
   const [scenarios] = useState<Scenario[]>(seedScenarios);
+  const [academicYears] = useState<AcademicYear[]>(seedAcademicYears);
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState(seedAcademicYears.find((a) => a.active)?.label ?? seedAcademicYears[0].label);
   const [qualifications] = useState<FacultyCourseQualification[]>(seedQualifications);
   const [assignments, setAssignments] = useState<WorkloadAssignment[]>(initialAssignments);
 
@@ -40,6 +45,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       if (parsed.courses) setCourses(parsed.courses);
       if (parsed.activities) setActivities(parsed.activities);
       if (parsed.assignments) setAssignments(parsed.assignments);
+      if (parsed.selectedAcademicYear) setSelectedAcademicYear(parsed.selectedAcademicYear);
     } catch {
       // no-op
     }
@@ -48,21 +54,22 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     localStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify({ faculty, courses, activities, assignments })
+      JSON.stringify({ faculty, courses, activities, assignments, selectedAcademicYear })
     );
-  }, [faculty, courses, activities, assignments]);
+  }, [faculty, courses, activities, assignments, selectedAcademicYear]);
 
   const resetToSeed = () => {
     setFaculty(seedFaculty);
     setCourses(seedCourses);
     setActivities(seedActivities);
     setAssignments(initialAssignments);
+    setSelectedAcademicYear(seedAcademicYears.find((a) => a.active)?.label ?? seedAcademicYears[0].label);
     localStorage.removeItem(STORAGE_KEY);
   };
 
   const value = useMemo(
-    () => ({ faculty, courses, activities, scenarios, qualifications, assignments, setFaculty, setCourses, setActivities, setAssignments, resetToSeed }),
-    [faculty, courses, activities, scenarios, qualifications, assignments]
+    () => ({ faculty, courses, activities, scenarios, academicYears, selectedAcademicYear, qualifications, assignments, setFaculty, setCourses, setActivities, setAssignments, setSelectedAcademicYear, resetToSeed }),
+    [faculty, courses, activities, scenarios, academicYears, selectedAcademicYear, qualifications, assignments]
   );
 
   return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;

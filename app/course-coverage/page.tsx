@@ -4,7 +4,8 @@ import { useAppData } from '@/components/AppDataProvider';
 import { quarters } from '@/lib/seed-data';
 
 export default function CourseCoveragePage() {
-  const { courses, faculty, assignments } = useAppData();
+  const { courses, faculty, assignments, selectedAcademicYear } = useAppData();
+  const yearAssignments = assignments.filter((a) => a.academic_year === selectedAcademicYear);
 
   return (
     <div className="rounded-lg border bg-white p-4">
@@ -18,7 +19,7 @@ export default function CourseCoveragePage() {
         </thead>
         <tbody>
           {courses.map((course) => {
-            const byQ = quarters.map((q) => assignments.filter((a) => a.course_id === course.id && a.quarter === q));
+            const byQ = quarters.map((q) => yearAssignments.filter((a) => a.course_id === course.id && a.quarter === q));
             const requiredSections = course.annual_sections_required ?? 1;
             const assignedSections = byQ.reduce((sum, entries) => sum + entries.length, 0);
             const unassignedRequired = course.is_required && assignedSections < requiredSections;

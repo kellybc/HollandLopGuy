@@ -23,14 +23,14 @@ function saveCsv(filename: string, content: string) {
 }
 
 export function WorkloadMatrixBoard() {
-  const { activities, courses, faculty, scenarios, qualifications, assignments, setAssignments, setFaculty } = useAppData();
+  const { activities, courses, faculty, scenarios, academicYears, selectedAcademicYear, setSelectedAcademicYear, qualifications, assignments, setAssignments, setFaculty } = useAppData();
   const [selectedScenario, setSelectedScenario] = useState('sc-base');
   const [selected, setSelected] = useState<WorkloadAssignment | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const role = (process.env.NEXT_PUBLIC_APP_ROLE ?? 'admin') as 'admin' | 'viewer';
   const canEdit = role === 'admin';
 
-  const scenarioAssignments = assignments.filter((a) => a.scenario_id === selectedScenario);
+  const scenarioAssignments = assignments.filter((a) => a.scenario_id === selectedScenario && a.academic_year === selectedAcademicYear);
   const warnings = useMemo(() => findWarnings({ assignments: scenarioAssignments, faculty, courses, activities, qualifications }), [scenarioAssignments]);
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -58,7 +58,7 @@ export function WorkloadMatrixBoard() {
         id: crypto.randomUUID(),
         faculty_id: facultyId,
         scenario_id: selectedScenario,
-        academic_year: '2026-2027',
+        academic_year: selectedAcademicYear,
         quarter: quarter as WorkloadAssignment['quarter'],
         item_type: 'course',
         course_id: course.id,
@@ -84,7 +84,7 @@ export function WorkloadMatrixBoard() {
         id: crypto.randomUUID(),
         faculty_id: facultyId,
         scenario_id: selectedScenario,
-        academic_year: '2026-2027',
+        academic_year: selectedAcademicYear,
         quarter: quarter as WorkloadAssignment['quarter'],
         item_type: 'activity',
         course_id: null,
@@ -134,6 +134,9 @@ export function WorkloadMatrixBoard() {
               <select className="rounded border p-2 text-sm" value={selectedScenario} onChange={(e) => setSelectedScenario(e.target.value)}>
                 {scenarios.map((s) => <option value={s.id} key={s.id}>{s.name}</option>)}
               </select>
+              <select className="rounded border p-2 text-sm" value={selectedAcademicYear} onChange={(e) => setSelectedAcademicYear(e.target.value)}>
+                {academicYears.map((y) => <option value={y.label} key={y.id}>{y.label}</option>)}
+              </select>
               <button className="rounded border px-2 py-1 text-xs" onClick={() => saveCsv('faculty-summary.csv', exportFacultySummary(faculty, scenarioAssignments))}>Export Faculty CSV</button>
               <button className="rounded border px-2 py-1 text-xs" onClick={() => saveCsv('course-coverage.csv', exportCourseCoverage(courses, scenarioAssignments))}>Export Coverage CSV</button>
               <button className="rounded border px-2 py-1 text-xs" onClick={() => saveCsv('assignments.csv', exportAssignments(scenarioAssignments))}>Export Assignments</button>
@@ -164,7 +167,7 @@ export function WorkloadMatrixBoard() {
                   const status = workloadStatus(total, targetForQuarter(f, q));
                   return (
                     <div key={`${f.id}-${q}`} className="space-y-1">
-                      <div className={`rounded px-2 py-1 text-xs font-medium ${status === 'green' ? 'bg-green-100 text-green-800' : status === 'yellow' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'}`}>
+                      <div className={`rounded px-2 py-1 text-xs font-medium ${status === 'green' ? 'bg-green-100 text-green-800' : status === 'yellow' ? 'bg-amber-100 text-amber-800' : 'animate-pulse bg-red-100 text-red-800 shadow-[0_0_12px_rgba(239,68,68,0.35)]'}`}>
                         {total} / {targetForQuarter(f, q)} WU
                       </div>
                       <MatrixCell facultyId={f.id} quarter={q} assignments={items} canEdit={canEdit} onSelect={setSelected} />

@@ -2,7 +2,10 @@ import { AcademicYear, Activity, Course, Faculty, FacultyCourseQualification, Sc
 
 export const quarters = ['Fall', 'Winter', 'Spring', 'Summer'] as const;
 
-export const academicYears: AcademicYear[] = [{ id: 'ay-2026', label: '2026-2027', start_year: 2026, active: true }];
+export const academicYears: AcademicYear[] = [
+  { id: 'ay-2026', label: '2026-2027', start_year: 2026, active: true },
+  { id: 'ay-2027', label: '2027-2028', start_year: 2027, active: false }
+];
 
 export const scenarios: Scenario[] = [
   { id: 'sc-base', academic_year_id: 'ay-2026', name: 'Base Plan', description: 'Primary staffing plan', is_active: true },
