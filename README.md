@@ -61,7 +61,6 @@ Faculty Load Matrix is a highly visual workload board for planning an academic y
    ```
 3. Run SQL migration in `supabase/migrations/001_init.sql`.
 4. Run `supabase/seed.sql`.
-5. Configure JWT/user metadata to include `app_role` (`admin` or `viewer`) for RLS policy checks.
 
 ## Local development
 ```bash
