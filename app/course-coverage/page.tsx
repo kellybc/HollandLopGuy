@@ -29,7 +29,7 @@ export default function CourseCoveragePage() {
                   const quarterAssignments = byQ[i];
                   if (!quarterAssignments.length) return <td key={q} className="border p-2 text-center text-slate-400">—</td>;
                   const normal = { Fall: course.normally_offered_fall, Winter: course.normally_offered_winter, Spring: course.normally_offered_spring, Summer: course.normally_offered_summer }[q];
-                  return <td key={q} className={`border p-2 text-center ${normal ? '' : 'bg-amber-100'}`}>{quarterAssignments.map((assignment) => faculty.find((f) => f.id === assignment.faculty_id)?.name ?? 'Unknown').join(', ')}</td>;
+                  return <td key={q} className={`border p-2 text-center ${normal ? '' : 'bg-amber-100'}`}>{quarterAssignments.map((assignment) => { const fac = faculty.find((f) => f.id === assignment.faculty_id); return fac ? `${fac.prefix ?? ''} ${fac.name}`.trim() : 'Unknown'; }).join(', ')}</td>;
                 })}
               </tr>
             );

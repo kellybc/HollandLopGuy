@@ -13,12 +13,12 @@ export const scenarios: Scenario[] = [
 ];
 
 export const faculty: Faculty[] = [
-  { id: 'f1', name: 'Dr. Alyssa Moreno', program: 'Mechanical Engineering', rank_or_role: 'Professor', annual_workload_target: 24, fall_target: 6, winter_target: 6, spring_target: 6, summer_target: 6, notes: 'Program chair rotation 2026-27', active: true },
-  { id: 'f2', name: 'Dr. Ben Carter', program: 'Mechanical Engineering', rank_or_role: 'Associate Professor', annual_workload_target: 24, fall_target: 6, winter_target: 6, spring_target: 6, summer_target: 6, active: true },
-  { id: 'f3', name: 'Dr. Chloe Park', program: 'Mechanical Engineering', rank_or_role: 'Assistant Professor', annual_workload_target: 22, fall_target: 6, winter_target: 6, spring_target: 6, summer_target: 4, active: true },
-  { id: 'f4', name: 'Prof. Daniel Kim', program: 'ICET', rank_or_role: 'Professor of Practice', annual_workload_target: 24, fall_target: 6, winter_target: 6, spring_target: 6, summer_target: 6, active: true },
-  { id: 'f5', name: 'Prof. Elena Singh', program: 'ICET', rank_or_role: 'Senior Lecturer', annual_workload_target: 24, fall_target: 6, winter_target: 6, spring_target: 6, summer_target: 6, active: true },
-  { id: 'f6', name: 'Dr. Farah Qureshi', program: 'Mechanical Engineering', rank_or_role: 'Assistant Professor', annual_workload_target: 20, fall_target: 5, winter_target: 5, spring_target: 5, summer_target: 5, active: true }
+  { id: 'f1', prefix: 'Dr.', name: 'Alyssa Moreno', program: 'Mechanical Engineering', rank_or_role: 'Professor', annual_workload_target: 24, fall_target: 6, winter_target: 6, spring_target: 6, summer_target: 6, notes: 'Program chair rotation 2026-27', active: true },
+  { id: 'f2', prefix: 'Dr.', name: 'Ben Carter', program: 'Mechanical Engineering', rank_or_role: 'Associate Professor', annual_workload_target: 24, fall_target: 6, winter_target: 6, spring_target: 6, summer_target: 6, active: true },
+  { id: 'f3', prefix: 'Dr.', name: 'Chloe Park', program: 'Mechanical Engineering', rank_or_role: 'Assistant Professor', annual_workload_target: 22, fall_target: 6, winter_target: 6, spring_target: 6, summer_target: 4, active: true },
+  { id: 'f4', prefix: 'Mr.', name: 'Daniel Kim', program: 'ICET', rank_or_role: 'Professor of Practice', annual_workload_target: 24, fall_target: 6, winter_target: 6, spring_target: 6, summer_target: 6, active: true },
+  { id: 'f5', prefix: 'Ms.', name: 'Elena Singh', program: 'ICET', rank_or_role: 'Senior Lecturer', annual_workload_target: 24, fall_target: 6, winter_target: 6, spring_target: 6, summer_target: 6, active: true },
+  { id: 'f6', prefix: 'Dr.', name: 'Farah Qureshi', program: 'Mechanical Engineering', rank_or_role: 'Assistant Professor', annual_workload_target: 20, fall_target: 5, winter_target: 5, spring_target: 5, summer_target: 5, active: true }
 ];
 
 export const courses: Course[] = [

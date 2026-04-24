@@ -7,10 +7,11 @@ type Props = {
   assignment: WorkloadAssignment | null;
   onClose: () => void;
   onSave: (assignment: WorkloadAssignment) => void;
+  onDelete?: (assignmentId: string) => void;
   readOnly?: boolean;
 };
 
-export function AssignmentModal({ assignment, onClose, onSave, readOnly }: Props) {
+export function AssignmentModal({ assignment, onClose, onSave, onDelete, readOnly }: Props) {
   const [draft, setDraft] = useState<WorkloadAssignment | null>(assignment);
   if (!assignment || !draft) return null;
 
@@ -41,6 +42,7 @@ export function AssignmentModal({ assignment, onClose, onSave, readOnly }: Props
           </label>
         </div>
         <div className="mt-4 flex justify-end gap-2">
+          {!readOnly && onDelete ? <button onClick={() => onDelete(draft.id)} className="rounded border border-red-300 px-3 py-2 text-red-700">Delete</button> : null}
           <button onClick={onClose} className="rounded border px-3 py-2">Close</button>
           {!readOnly && <button onClick={() => onSave(draft)} className="rounded bg-slate-900 px-3 py-2 text-white">Save</button>}
         </div>

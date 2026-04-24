@@ -19,7 +19,7 @@ export default function FacultyDetail() {
   return (
     <div className="space-y-4">
       <section className="rounded-lg border bg-white p-4">
-        <h2 className="text-lg font-semibold">{person.name}</h2>
+        <h2 className="text-lg font-semibold">{`${person.prefix ?? ''} ${person.name}`.trim()}</h2>
         <p className="text-sm text-slate-600">{person.rank_or_role} · {person.program}</p>
         <p className="mt-2 text-sm">Annual workload: {annualTotal(assignments, id)} / {person.annual_workload_target} WU</p>
       </section>

@@ -3,6 +3,7 @@ export type Program = 'Mechanical Engineering' | 'ICET' | 'Other';
 
 export type Faculty = {
   id: string;
+  prefix?: string;
   name: string;
   program: Program;
   rank_or_role: string;
