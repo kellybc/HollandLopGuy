@@ -11,7 +11,7 @@ export default function CoursesPage() {
         {courses.map((course) => (
           <div key={course.id} className="rounded border p-2 text-sm">
             <p className="font-medium">{course.prefix} {course.number} - {course.title}</p>
-            <p>{course.credit_hours} cr / {course.default_workload_units} WU {course.is_required ? '· Required' : '· Elective'}</p>
+            <p>{course.credit_hours} cr / {course.default_workload_units} WU {course.is_required ? `· Required · ${course.annual_sections_required ?? 1} sections` : '· Elective'}</p>
           </div>
         ))}
       </div>

@@ -11,8 +11,19 @@ export function findWarnings(params: {
   const { assignments, faculty, courses, qualifications } = params;
   const warnings: string[] = [];
 
-  const assignedCourseIds = new Set(assignments.filter((a) => a.course_id).map((a) => a.course_id as string));
-  courses.filter((c) => c.is_required && !assignedCourseIds.has(c.id)).forEach((c) => warnings.push(`Required course unassigned: ${c.prefix} ${c.number}`));
+  const assignedCount = assignments.reduce<Record<string, number>>((acc, a) => {
+    if (a.course_id) acc[a.course_id] = (acc[a.course_id] ?? 0) + 1;
+    return acc;
+  }, {});
+  courses
+    .filter((c) => c.is_required)
+    .forEach((c) => {
+      const requiredSections = c.annual_sections_required ?? 1;
+      const assignedSections = assignedCount[c.id] ?? 0;
+      if (assignedSections < requiredSections) {
+        warnings.push(`Required course sections unassigned: ${c.prefix} ${c.number} (${assignedSections}/${requiredSections})`);
+      }
+    });
 
   faculty.forEach((f) => {
     const annual = annualTotal(assignments, f.id);

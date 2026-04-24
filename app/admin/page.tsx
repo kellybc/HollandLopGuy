@@ -66,6 +66,9 @@ export default function AdminPage() {
                 <label className="text-xs">Default WU
                   <input type="number" className="ml-2 w-16 rounded border p-1" value={c.default_workload_units} onChange={(e) => setCourses((prev) => prev.map((row) => row.id === c.id ? { ...row, default_workload_units: Number(e.target.value) } : row))} />
                 </label>
+                <label className="text-xs">Required Sections
+                  <input type="number" min={1} className="ml-2 w-16 rounded border p-1" value={c.annual_sections_required ?? 1} onChange={(e) => setCourses((prev) => prev.map((row) => row.id === c.id ? { ...row, annual_sections_required: Number(e.target.value) } : row))} />
+                </label>
                 <label className="text-xs">
                   <input type="checkbox" checked={c.is_required} onChange={(e) => setCourses((prev) => prev.map((row) => row.id === c.id ? { ...row, is_required: e.target.checked } : row))} /> Required
                 </label>

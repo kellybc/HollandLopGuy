@@ -42,7 +42,10 @@ export function WorkloadMatrixBoard() {
     if (!facultyId || !quarter) return;
 
     if (activeId.startsWith('template-course-')) {
-      const courseId = activeId.replace('template-course-', '');
+      const match = activeId.match(/^template-course-(.+)-(\d+)$/);
+      if (!match) return;
+      const [, courseId, sectionToken] = match;
+      const section = Number(sectionToken || '1');
       const course = courses.find((c) => c.id === courseId);
       if (!course) return;
       const next: WorkloadAssignment = {
@@ -57,7 +60,8 @@ export function WorkloadMatrixBoard() {
         workload_units: course.default_workload_units,
         workload_units_override: false,
         credit_hours_snapshot: course.credit_hours,
-        label: `${course.prefix} ${course.number}\n${course.title}`,
+        section,
+        label: `${course.prefix} ${course.number}\n${course.title} · Sec ${section}`,
         status: 'planned',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
@@ -82,6 +86,7 @@ export function WorkloadMatrixBoard() {
         workload_units: activity.default_workload_units,
         workload_units_override: false,
         credit_hours_snapshot: null,
+        section: null,
         label: activity.title,
         status: 'planned',
         created_at: new Date().toISOString(),
