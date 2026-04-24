@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  @apply bg-gradient-to-b from-slate-50 to-slate-100 text-slate-900;
+}
+
+.matrix-grid {
+  grid-template-columns: 220px repeat(4, minmax(240px, 1fr));
+}
