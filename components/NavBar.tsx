@@ -11,6 +11,7 @@ const links = [
   ['/courses', 'Courses'],
   ['/activities', 'Activities'],
   ['/scenarios', 'Scenarios'],
+  ['/admin', 'Admin'],
   ['/settings', 'Settings']
 ] as const;
 

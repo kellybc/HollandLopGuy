@@ -31,6 +31,7 @@ Faculty Load Matrix is a highly visual workload board for planning an academic y
 - `/faculty` Faculty directory
 - `/faculty/[id]` Faculty detail
 - `/courses`, `/activities`, `/scenarios`, `/settings` scaffolding routes
+- `/admin` Admin panel for editing faculty targets, course WU defaults, and activity WU defaults (stored in browser localStorage)
 
 ## Validation warnings included
 - Required course not assigned

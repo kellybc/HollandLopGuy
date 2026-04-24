@@ -1,6 +1,9 @@
-import { scenarios } from '@/lib/seed-data';
+'use client';
+
+import { useAppData } from '@/components/AppDataProvider';
 
 export default function ScenariosPage() {
+  const { scenarios } = useAppData();
   return (
     <div className="rounded-lg border bg-white p-4">
       <h2 className="mb-3 text-lg font-semibold">Scenario Planning</h2>

@@ -1,6 +1,9 @@
-import { activities } from '@/lib/seed-data';
+'use client';
+
+import { useAppData } from '@/components/AppDataProvider';
 
 export default function ActivitiesPage() {
+  const { activities } = useAppData();
   return (
     <div className="rounded-lg border bg-white p-4">
       <h2 className="mb-3 text-lg font-semibold">Activities</h2>

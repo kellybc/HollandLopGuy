@@ -1,6 +1,11 @@
-import { courses, faculty, initialAssignments, quarters } from '@/lib/seed-data';
+'use client';
+
+import { useAppData } from '@/components/AppDataProvider';
+import { quarters } from '@/lib/seed-data';
 
 export default function CourseCoveragePage() {
+  const { courses, faculty, assignments } = useAppData();
+
   return (
     <div className="rounded-lg border bg-white p-4">
       <h2 className="mb-3 text-lg font-semibold">Course Coverage View</h2>
@@ -13,7 +18,7 @@ export default function CourseCoveragePage() {
         </thead>
         <tbody>
           {courses.map((course) => {
-            const byQ = quarters.map((q) => initialAssignments.find((a) => a.course_id === course.id && a.quarter === q));
+            const byQ = quarters.map((q) => assignments.find((a) => a.course_id === course.id && a.quarter === q));
             const unassignedRequired = course.is_required && byQ.every((x) => !x);
             return (
               <tr key={course.id} className={unassignedRequired ? 'bg-red-50' : ''}>

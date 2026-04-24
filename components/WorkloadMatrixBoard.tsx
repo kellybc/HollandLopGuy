@@ -2,7 +2,7 @@
 
 import { DndContext, DragEndEvent } from '@dnd-kit/core';
 import { Fragment, useMemo, useState } from 'react';
-import { activities, courses, faculty, initialAssignments, qualifications, quarters, scenarios } from '@/lib/seed-data';
+import { quarters } from '@/lib/seed-data';
 import { WorkloadAssignment } from '@/lib/types';
 import { annualTotal, quarterTotal, targetForQuarter, workloadStatus } from '@/lib/workload';
 import { MatrixCell } from './MatrixCell';
@@ -10,6 +10,7 @@ import { AssignmentModal } from './AssignmentModal';
 import { UnassignedSidebar } from './UnassignedSidebar';
 import { findWarnings } from '@/lib/validation';
 import { exportAssignments, exportCourseCoverage, exportFacultySummary } from '@/lib/csv';
+import { useAppData } from './AppDataProvider';
 
 function saveCsv(filename: string, content: string) {
   const blob = new Blob([content], { type: 'text/csv;charset=utf-8' });
@@ -22,8 +23,8 @@ function saveCsv(filename: string, content: string) {
 }
 
 export function WorkloadMatrixBoard() {
+  const { activities, courses, faculty, scenarios, qualifications, assignments, setAssignments } = useAppData();
   const [selectedScenario, setSelectedScenario] = useState('sc-base');
-  const [assignments, setAssignments] = useState<WorkloadAssignment[]>(initialAssignments);
   const [selected, setSelected] = useState<WorkloadAssignment | null>(null);
   const role = (process.env.NEXT_PUBLIC_APP_ROLE ?? 'admin') as 'admin' | 'viewer';
   const canEdit = role === 'admin';
