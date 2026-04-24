@@ -1,6 +1,6 @@
 'use client';
 
-import { DndContext, DragEndEvent } from '@dnd-kit/core';
+import { DndContext, DragEndEvent, DragOverlay, DragStartEvent } from '@dnd-kit/core';
 import { Fragment, useMemo, useState } from 'react';
 import { quarters } from '@/lib/seed-data';
 import { WorkloadAssignment } from '@/lib/types';
@@ -26,14 +26,20 @@ export function WorkloadMatrixBoard() {
   const { activities, courses, faculty, scenarios, qualifications, assignments, setAssignments } = useAppData();
   const [selectedScenario, setSelectedScenario] = useState('sc-base');
   const [selected, setSelected] = useState<WorkloadAssignment | null>(null);
+  const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const role = (process.env.NEXT_PUBLIC_APP_ROLE ?? 'admin') as 'admin' | 'viewer';
   const canEdit = role === 'admin';
 
   const scenarioAssignments = assignments.filter((a) => a.scenario_id === selectedScenario);
   const warnings = useMemo(() => findWarnings({ assignments: scenarioAssignments, faculty, courses, activities, qualifications }), [scenarioAssignments]);
 
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveDragId(String(event.active.id));
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+    setActiveDragId(null);
     if (!over || !canEdit) return;
 
     const activeId = String(active.id);
@@ -99,8 +105,24 @@ export function WorkloadMatrixBoard() {
     setAssignments((prev) => prev.map((assignment) => (assignment.id === activeId ? { ...assignment, faculty_id: facultyId, quarter: quarter as WorkloadAssignment['quarter'] } : assignment)));
   };
 
+  const dragPreview = (() => {
+    if (!activeDragId) return null;
+    if (activeDragId.startsWith('template-course-')) {
+      const match = activeDragId.match(/^template-course-(.+)-(\d+)$/);
+      if (!match) return 'Course';
+      const [, courseId, section] = match;
+      const course = courses.find((c) => c.id === courseId);
+      return course ? `${course.prefix} ${course.number} ${course.title} · Sec ${section}` : 'Course';
+    }
+    if (activeDragId.startsWith('template-activity-')) {
+      const activityId = activeDragId.replace('template-activity-', '');
+      return activities.find((a) => a.id === activityId)?.title ?? 'Activity';
+    }
+    return assignments.find((a) => a.id === activeDragId)?.label ?? null;
+  })();
+
   return (
-    <DndContext onDragEnd={handleDragEnd}>
+    <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragCancel={() => setActiveDragId(null)}>
       <div className="flex gap-4">
         <div className="min-w-0 flex-1">
           <div className="mb-3 flex items-center justify-between">
@@ -157,6 +179,13 @@ export function WorkloadMatrixBoard() {
 
         <UnassignedSidebar courses={courses} activities={activities} assignments={scenarioAssignments} canEdit={canEdit} />
       </div>
+      <DragOverlay>
+        {dragPreview ? (
+          <div className="max-w-72 rounded-md border border-indigo-300 bg-white p-2 text-xs font-semibold shadow-lg">
+            {dragPreview}
+          </div>
+        ) : null}
+      </DragOverlay>
     </DndContext>
   );
 }

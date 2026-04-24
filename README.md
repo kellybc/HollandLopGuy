@@ -13,6 +13,7 @@ Faculty Load Matrix is a highly visual workload board for planning an academic y
 - Drag courses and activities from an unassigned sidebar into faculty/quarter cells.
 - Required courses can define multiple annual sections; each open section appears as its own draggable card.
 - Matrix cells display a \"Drop course/activity here\" hint when empty.
+- Unassigned panel scrolls independently from the matrix and shows a floating drag preview while dragging.
 - Drag existing blocks between cells.
 - Edit block workload units, status, and notes in a modal.
 - Visual block sizing rule: **1 WU = 40 px height**.
@@ -35,6 +36,7 @@ Faculty Load Matrix is a highly visual workload board for planning an academic y
 - `/courses`, `/activities`, `/scenarios`, `/settings` scaffolding routes
 - `/admin` Admin panel for editing faculty targets, course WU defaults, and activity WU defaults (stored in browser localStorage)
 - `/admin` also edits required section counts per course for multi-section planning
+- Admin includes CRUD operations for faculty, courses, and assignments.
 - Admin updates to default WU now propagate to existing non-overridden assignments.
 
 ## Validation warnings included
