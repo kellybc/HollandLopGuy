@@ -89,8 +89,8 @@ alter table faculty_course_qualifications enable row level security;
 alter table scenarios enable row level security;
 alter table academic_years enable row level security;
 
-create role if not exists app_admin;
-create role if not exists app_viewer;
+-- Supabase does not allow CREATE ROLE in project SQL migrations.
+-- Use a custom JWT claim like `app_role` (admin/viewer) from Auth hooks or metadata.
 
 create policy "viewer read faculty" on faculty for select using (auth.role() in ('authenticated'));
 create policy "admin edit faculty" on faculty for all using (auth.jwt() ->> 'app_role' = 'admin') with check (auth.jwt() ->> 'app_role' = 'admin');
