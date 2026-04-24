@@ -19,7 +19,7 @@ export function WorkloadBlock({ assignment, canEdit, onClick }: Props) {
         height: workloadHeight(assignment.workload_units),
         transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined
       }}
-      className="mb-2 w-full rounded-md border border-slate-300 bg-white p-2 text-left shadow-sm"
+      className="mb-2 w-full cursor-grab rounded-md border border-slate-300 bg-white p-2 text-left shadow-sm active:cursor-grabbing"
       onClick={() => onClick(assignment)}
       {...listeners}
       {...attributes}

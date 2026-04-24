@@ -43,6 +43,9 @@ export function UnassignedSidebar({ courses, activities, assignments, canEdit }:
   return (
     <aside className="w-80 space-y-3 rounded-lg border bg-slate-100 p-3">
       <h3 className="text-sm font-semibold">Unassigned Work</h3>
+      <p className="rounded bg-indigo-50 p-2 text-xs text-indigo-800">
+        Drag any card below into a faculty quarter cell to assign it.
+      </p>
       <section>
         <p className="mb-2 text-xs font-semibold text-red-700">Required Courses</p>
         {required.map((c) => <DraggableTemplate key={c.id} id={c.id} label={c.label} subtitle={c.subtitle} canEdit={canEdit} />)}
