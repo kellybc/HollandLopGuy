@@ -18,6 +18,8 @@ Faculty Load Matrix is a highly visual workload board for planning an academic y
 - Edit block workload units, status, and notes in a modal; block modal also supports deleting assignments directly from matrix screen.
 - Dark mode toggle is available in the top navigation.
 - Matrix and Admin support switching academic years.
+- Matrix has a Compact View toggle to collapse rows for denser scheduling review.
+- Overloaded faculty-quarter cells use a pulsing red glow.
 - Visual block sizing rule: **1 WU = 40 px height**.
 - Credit hours are shown but do not drive visual size; workload units do.
 

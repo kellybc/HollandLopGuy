@@ -27,6 +27,7 @@ export function WorkloadMatrixBoard() {
   const [selectedScenario, setSelectedScenario] = useState('sc-base');
   const [selected, setSelected] = useState<WorkloadAssignment | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
+  const [compactMode, setCompactMode] = useState(false);
   const role = (process.env.NEXT_PUBLIC_APP_ROLE ?? 'admin') as 'admin' | 'viewer';
   const canEdit = role === 'admin';
 
@@ -140,6 +141,7 @@ export function WorkloadMatrixBoard() {
               <button className="rounded border px-2 py-1 text-xs" onClick={() => saveCsv('faculty-summary.csv', exportFacultySummary(faculty, scenarioAssignments))}>Export Faculty CSV</button>
               <button className="rounded border px-2 py-1 text-xs" onClick={() => saveCsv('course-coverage.csv', exportCourseCoverage(courses, scenarioAssignments))}>Export Coverage CSV</button>
               <button className="rounded border px-2 py-1 text-xs" onClick={() => saveCsv('assignments.csv', exportAssignments(scenarioAssignments))}>Export Assignments</button>
+              <button className="rounded border px-2 py-1 text-xs" onClick={() => setCompactMode((prev) => !prev)}>{compactMode ? 'Expanded View' : 'Compact View'}</button>
             </div>
           </div>
 
@@ -152,25 +154,35 @@ export function WorkloadMatrixBoard() {
               <Fragment key={f.id}>
                 <div key={`${f.id}-info`} className="rounded-lg border bg-white p-3">
                   <p className="font-semibold">{`${f.prefix ?? ''} ${f.name}`.trim()}</p>
-                  <textarea
-                    className="mt-2 w-full rounded border p-1 text-[11px] text-slate-600"
-                    placeholder="Faculty notes"
-                    value={f.notes ?? ''}
-                    onChange={(e) => setFaculty((prev) => prev.map((x) => (x.id === f.id ? { ...x, notes: e.target.value } : x)))}
-                    readOnly={!canEdit}
-                  />
+                  {!compactMode ? (
+                    <textarea
+                      className="mt-2 w-full rounded border p-1 text-[11px] text-slate-600"
+                      placeholder="Faculty notes"
+                      value={f.notes ?? ''}
+                      onChange={(e) => setFaculty((prev) => prev.map((x) => (x.id === f.id ? { ...x, notes: e.target.value } : x)))}
+                      readOnly={!canEdit}
+                    />
+                  ) : null}
                   <p className="text-xs text-slate-600">Annual {annualTotal(scenarioAssignments, f.id)}/{f.annual_workload_target} WU</p>
                 </div>
                 {quarters.map((q) => {
                   const items = scenarioAssignments.filter((a) => a.faculty_id === f.id && a.quarter === q);
                   const total = quarterTotal(scenarioAssignments, f.id, q);
-                  const status = workloadStatus(total, targetForQuarter(f, q));
+                  const target = targetForQuarter(f, q);
+                  const status = workloadStatus(total, target);
+                  const overloaded = total > target;
                   return (
                     <div key={`${f.id}-${q}`} className="space-y-1">
-                      <div className={`rounded px-2 py-1 text-xs font-medium ${status === 'green' ? 'bg-green-100 text-green-800' : status === 'yellow' ? 'bg-amber-100 text-amber-800' : 'animate-pulse bg-red-100 text-red-800 shadow-[0_0_12px_rgba(239,68,68,0.35)]'}`}>
-                        {total} / {targetForQuarter(f, q)} WU
+                      <div className={`rounded px-2 py-1 text-xs font-medium ${status === 'green' ? 'bg-green-100 text-green-800' : status === 'yellow' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'} ${overloaded ? 'overloaded-glow' : ''}`}>
+                        {total} / {target} WU
                       </div>
-                      <MatrixCell facultyId={f.id} quarter={q} assignments={items} canEdit={canEdit} onSelect={setSelected} />
+                      {compactMode ? (
+                        <div className="rounded border bg-slate-50 p-2 text-xs text-slate-600">
+                          {items.length} assignments
+                        </div>
+                      ) : (
+                        <MatrixCell facultyId={f.id} quarter={q} assignments={items} canEdit={canEdit} onSelect={setSelected} />
+                      )}
                     </div>
                   );
                 })}
