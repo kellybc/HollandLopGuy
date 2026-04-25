@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  @apply bg-gradient-to-b from-slate-50 to-slate-100 text-slate-900;
+}
+
+html.dark body {
+  @apply bg-slate-900 text-slate-100;
+}
+
+html.dark .bg-white {
+  @apply bg-slate-800 text-slate-100;
+}
+
+html.dark .bg-slate-50 {
+  @apply bg-slate-900;
+}
+
+html.dark .bg-slate-100 {
+  @apply bg-slate-800;
+}
+
+html.dark .bg-slate-200 {
+  @apply bg-slate-700 text-slate-100;
+}
+
+html.dark .border {
+  @apply border-slate-700;
+}
+
+html.dark .text-slate-600,
+html.dark .text-slate-700 {
+  @apply text-slate-300;
+}
+
+html.dark input,
+html.dark select,
+html.dark textarea {
+  @apply bg-slate-800 text-slate-100 border-slate-600;
+}
+
+html.dark button {
+  @apply border-slate-600;
+}
+
+html.dark .bg-indigo-50 {
+  @apply bg-slate-700 text-slate-100;
+}
+
+.overloaded-glow {
+  box-shadow: 0 0 0 rgba(239, 68, 68, 0.2);
+  animation: overloadedPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes overloadedPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+  }
+}
+
+.matrix-grid {
+  grid-template-columns: 220px repeat(4, minmax(240px, 1fr));
+}
