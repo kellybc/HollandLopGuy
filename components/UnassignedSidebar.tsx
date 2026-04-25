@@ -13,28 +13,53 @@ type Props = {
 function DraggableTemplate({ id, label, subtitle, canEdit }: { id: string; label: string; subtitle: string; canEdit: boolean }) {
   const { attributes, listeners, setNodeRef } = useDraggable({ id, disabled: !canEdit });
   return (
-    <div ref={setNodeRef} {...listeners} {...attributes} className="mb-2 rounded border bg-white p-2 text-xs shadow-sm">
+    <button
+      ref={setNodeRef}
+      type="button"
+      style={{ touchAction: 'none' }}
+      {...listeners}
+      {...attributes}
+      className="mb-2 w-full select-none rounded border bg-white p-2 text-left text-xs shadow-sm cursor-grab active:cursor-grabbing"
+    >
       <p className="font-semibold">{label}</p>
       <p className="text-slate-600">{subtitle}</p>
-    </div>
+    </button>
   );
 }
 
 export function UnassignedSidebar({ courses, activities, assignments, canEdit }: Props) {
-  const assigned = new Set(assignments.map((a) => a.course_id).filter(Boolean));
-  const required = courses.filter((c) => c.is_required && !assigned.has(c.id));
-  const elective = courses.filter((c) => !c.is_required && !assigned.has(c.id));
+  const assignedCount = assignments.reduce<Record<string, number>>((acc, a) => {
+    if (a.course_id) acc[a.course_id] = (acc[a.course_id] ?? 0) + 1;
+    return acc;
+  }, {});
+
+  const buildCourseSlots = (course: Course) => {
+    const required = course.annual_sections_required ?? 1;
+    const assigned = assignedCount[course.id] ?? 0;
+    const open = Math.max(required - assigned, 0);
+    return Array.from({ length: open }, (_, index) => ({
+      id: `template-course-${course.id}-${index + 1}`,
+      label: `${course.prefix} ${course.number} ${course.title} · Sec ${assigned + index + 1}`,
+      subtitle: `${course.credit_hours} cr / ${course.default_workload_units} WU · ${assigned}/${required} assigned`
+    }));
+  };
+
+  const required = courses.filter((c) => c.is_required).flatMap(buildCourseSlots);
+  const elective = courses.filter((c) => !c.is_required && (assignedCount[c.id] ?? 0) === 0);
 
   return (
-    <aside className="w-80 space-y-3 rounded-lg border bg-slate-100 p-3">
+    <aside className="sticky top-28 max-h-[calc(100vh-8rem)] w-80 space-y-3 overflow-y-auto rounded-lg border bg-slate-100 p-3">
       <h3 className="text-sm font-semibold">Unassigned Work</h3>
+      <p className="rounded bg-indigo-50 p-2 text-xs text-indigo-800">
+        Drag any card below into a faculty quarter cell to assign it.
+      </p>
       <section>
         <p className="mb-2 text-xs font-semibold text-red-700">Required Courses</p>
-        {required.map((c) => <DraggableTemplate key={c.id} id={`template-course-${c.id}`} label={`${c.prefix} ${c.number} ${c.title}`} subtitle={`${c.credit_hours} cr / ${c.default_workload_units} WU`} canEdit={canEdit} />)}
+        {required.map((c) => <DraggableTemplate key={c.id} id={c.id} label={c.label} subtitle={c.subtitle} canEdit={canEdit} />)}
       </section>
       <section>
         <p className="mb-2 text-xs font-semibold text-amber-700">Elective Courses</p>
-        {elective.slice(0, 8).map((c) => <DraggableTemplate key={c.id} id={`template-course-${c.id}`} label={`${c.prefix} ${c.number} ${c.title}`} subtitle={`${c.credit_hours} cr / ${c.default_workload_units} WU`} canEdit={canEdit} />)}
+        {elective.slice(0, 8).map((c) => <DraggableTemplate key={c.id} id={`template-course-${c.id}-1`} label={`${c.prefix} ${c.number} ${c.title}`} subtitle={`${c.credit_hours} cr / ${c.default_workload_units} WU`} canEdit={canEdit} />)}
       </section>
       <section>
         <p className="mb-2 text-xs font-semibold text-indigo-700">Activities</p>

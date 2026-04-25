@@ -17,6 +17,7 @@ export function MatrixCell({ facultyId, quarter, assignments, canEdit, onSelect 
   const { setNodeRef, isOver } = useDroppable({ id: droppableId, disabled: !canEdit });
   return (
     <div ref={setNodeRef} className={`min-h-56 rounded-lg border p-2 ${isOver ? 'border-indigo-500 bg-indigo-50' : 'border-slate-300 bg-slate-100'}`}>
+      {assignments.length === 0 ? <p className="mb-2 text-xs text-slate-500">Drop course/activity here</p> : null}
       {assignments.map((a) => (
         <WorkloadBlock key={a.id} assignment={a} canEdit={canEdit} onClick={onSelect} />
       ))}

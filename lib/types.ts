@@ -3,6 +3,7 @@ export type Program = 'Mechanical Engineering' | 'ICET' | 'Other';
 
 export type Faculty = {
   id: string;
+  prefix?: string;
   name: string;
   program: Program;
   rank_or_role: string;
@@ -23,6 +24,7 @@ export type Course = {
   program: Program;
   credit_hours: number;
   default_workload_units: number;
+  annual_sections_required?: number;
   is_required: boolean;
   normally_offered_fall: boolean;
   normally_offered_winter: boolean;
@@ -66,6 +68,7 @@ export type WorkloadAssignment = {
   workload_units: number;
   workload_units_override: boolean;
   credit_hours_snapshot: number | null;
+  section?: number | null;
   label: string;
   notes?: string;
   status: AssignmentStatus;
