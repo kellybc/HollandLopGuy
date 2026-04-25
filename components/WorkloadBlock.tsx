@@ -28,7 +28,6 @@ export function WorkloadBlock({ assignment, canEdit, onClick }: Props) {
       <p className="text-xs text-slate-600">
         {assignment.credit_hours_snapshot ?? '-'} cr / {assignment.workload_units} WU {assignment.workload_units_override ? 'OVERRIDE' : ''}
       </p>
-      <p className="text-[11px] uppercase tracking-wide text-slate-500">{assignment.status}</p>
     </button>
   );
 }

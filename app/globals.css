@@ -14,6 +14,10 @@ html.dark body {
   @apply bg-slate-900 text-slate-100;
 }
 
+html.dark main {
+  @apply bg-slate-900;
+}
+
 html.dark .bg-white {
   @apply bg-slate-800 text-slate-100;
 }
@@ -34,6 +38,11 @@ html.dark .border {
   @apply border-slate-700;
 }
 
+html.dark .border-slate-300,
+html.dark .border-slate-400 {
+  @apply border-slate-600;
+}
+
 html.dark .text-slate-600,
 html.dark .text-slate-700 {
   @apply text-slate-300;
@@ -51,6 +60,18 @@ html.dark button {
 
 html.dark .bg-indigo-50 {
   @apply bg-slate-700 text-slate-100;
+}
+
+html.dark .bg-amber-100 {
+  @apply bg-amber-900/50 text-amber-100;
+}
+
+html.dark .bg-green-100 {
+  @apply bg-green-900/40 text-green-100;
+}
+
+html.dark .bg-red-100 {
+  @apply bg-red-900/40 text-red-100;
 }
 
 .overloaded-glow {
