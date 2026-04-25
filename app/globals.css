@@ -6,8 +6,16 @@
   color-scheme: light;
 }
 
+html {
+  @apply min-h-full bg-gradient-to-b from-slate-50 to-slate-100;
+}
+
 body {
-  @apply bg-gradient-to-b from-slate-50 to-slate-100 text-slate-900;
+  @apply min-h-screen text-slate-900;
+}
+
+html.dark {
+  @apply bg-slate-900;
 }
 
 html.dark body {

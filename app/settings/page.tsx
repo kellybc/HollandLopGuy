@@ -41,6 +41,21 @@ export default function SettingsPage() {
         <p className={`mt-2 rounded p-2 text-sm ${syncState === 'error' ? 'bg-red-100 text-red-800' : syncState === 'saved' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}`}>
           Sync status: <strong>{syncState}</strong> — {syncMessage}
         </p>
+        {(syncState === 'disabled' || syncState === 'error') ? (
+          <div className="mt-3 rounded border border-slate-300 bg-slate-50 p-3 text-sm text-slate-700">
+            <p className="font-semibold">Supabase not connected? Do this:</p>
+            <ol className="mt-2 list-decimal space-y-1 pl-5">
+              <li>Create a Supabase project and copy Project URL + anon key.</li>
+              <li>Add these values to <code className="rounded bg-slate-200 px-1 py-0.5">.env.local</code> and restart the dev server.</li>
+              <li>Run migrations in order: <code className="rounded bg-slate-200 px-1 py-0.5">001_init.sql</code>, <code className="rounded bg-slate-200 px-1 py-0.5">002_planner_state.sql</code>, <code className="rounded bg-slate-200 px-1 py-0.5">003_planner_state_anon.sql</code>.</li>
+            </ol>
+            <code className="mt-2 block whitespace-pre-wrap rounded bg-slate-100 p-2 text-xs">
+              NEXT_PUBLIC_SUPABASE_URL=your-project-url{'\n'}
+              NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key{'\n'}
+              NEXT_PUBLIC_APP_ROLE=admin
+            </code>
+          </div>
+        ) : null}
       </section>
 
       <section className="rounded-lg border bg-white p-4">
@@ -72,11 +87,11 @@ export default function SettingsPage() {
         <div className="grid gap-3 md:grid-cols-2">
           <div>
             <p className="mb-1 text-sm font-semibold">Faculty CSV headers</p>
-            <code className="block rounded bg-slate-100 p-2 text-xs">prefix,name,program,rank_or_role,annual_workload_target,fall_target,winter_target,spring_target,summer_target,notes</code>
+            <code className="block overflow-x-auto whitespace-pre-wrap break-all rounded bg-slate-100 p-2 text-xs">prefix,name,program,rank_or_role,annual_workload_target,fall_target,winter_target,spring_target,summer_target,notes</code>
           </div>
           <div>
             <p className="mb-1 text-sm font-semibold">Courses CSV headers</p>
-            <code className="block rounded bg-slate-100 p-2 text-xs">prefix,number,title,program,credit_hours,default_workload_units,annual_sections_required,is_required,normally_offered_fall,normally_offered_winter,normally_offered_spring,normally_offered_summer,notes</code>
+            <code className="block overflow-x-auto whitespace-pre-wrap break-all rounded bg-slate-100 p-2 text-xs">prefix,number,title,program,credit_hours,default_workload_units,annual_sections_required,is_required,normally_offered_fall,normally_offered_winter,normally_offered_spring,normally_offered_summer,notes</code>
           </div>
         </div>
       </section>
