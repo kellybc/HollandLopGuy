@@ -62,8 +62,8 @@ Faculty Load Matrix is a highly visual workload board for planning an academic y
 - Assignments
 
 ### Import (starter utilities)
-- Faculty CSV import parser
-- Courses CSV import parser
+- Faculty import (`.csv`; `.xlsx/.xls` accepted but must be exported to CSV before parsing)
+- Courses import (`.csv`; `.xlsx/.xls` accepted but must be exported to CSV before parsing)
 
 ## Supabase setup
 1. Create a Supabase project.
