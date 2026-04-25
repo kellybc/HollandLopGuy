@@ -20,6 +20,8 @@ type AppDataState = {
   setActivities: Dispatch<SetStateAction<Activity[]>>;
   setAssignments: Dispatch<SetStateAction<WorkloadAssignment[]>>;
   setSelectedAcademicYear: Dispatch<SetStateAction<string>>;
+  syncState: 'disabled' | 'loading' | 'saving' | 'saved' | 'error';
+  syncMessage: string;
   resetToSeed: () => void;
 };
 
@@ -38,6 +40,8 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const [qualifications] = useState<FacultyCourseQualification[]>(seedQualifications);
   const [assignments, setAssignments] = useState<WorkloadAssignment[]>(initialAssignments);
   const [hydrated, setHydrated] = useState(false);
+  const [syncState, setSyncState] = useState<'disabled' | 'loading' | 'saving' | 'saved' | 'error'>(isSupabaseConfigured ? 'loading' : 'disabled');
+  const [syncMessage, setSyncMessage] = useState(isSupabaseConfigured ? 'Connecting to Supabase…' : 'Supabase not configured; using local browser storage only.');
 
   useEffect(() => {
     const load = async () => {
@@ -56,14 +60,23 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (isSupabaseConfigured && supabase) {
-        const { data } = await supabase.from('planner_state').select('payload').eq('id', REMOTE_STATE_ID).maybeSingle();
-        const payload = data?.payload as Partial<AppDataState> | undefined;
-        if (payload) {
-          if (payload.faculty) setFaculty(payload.faculty);
-          if (payload.courses) setCourses(payload.courses);
-          if (payload.activities) setActivities(payload.activities);
-          if (payload.assignments) setAssignments(payload.assignments);
-          if (payload.selectedAcademicYear) setSelectedAcademicYear(payload.selectedAcademicYear);
+        setSyncState('loading');
+        setSyncMessage('Reading planner_state from Supabase…');
+        const { data, error } = await supabase.from('planner_state').select('payload').eq('id', REMOTE_STATE_ID).maybeSingle();
+        if (error) {
+          setSyncState('error');
+          setSyncMessage(`Supabase read failed: ${error.message}`);
+        } else {
+          const payload = data?.payload as Partial<AppDataState> | undefined;
+          if (payload) {
+            if (payload.faculty) setFaculty(payload.faculty);
+            if (payload.courses) setCourses(payload.courses);
+            if (payload.activities) setActivities(payload.activities);
+            if (payload.assignments) setAssignments(payload.assignments);
+            if (payload.selectedAcademicYear) setSelectedAcademicYear(payload.selectedAcademicYear);
+          }
+          setSyncState('saved');
+          setSyncMessage('Supabase sync connected.');
         }
       }
       setHydrated(true);
@@ -84,11 +97,22 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
     if (!(isSupabaseConfigured && supabase)) return;
     const client = supabase;
     const handle = setTimeout(() => {
-      void client.from('planner_state').upsert({
-        id: REMOTE_STATE_ID,
-        payload: { faculty, courses, activities, assignments, selectedAcademicYear },
-        updated_at: new Date().toISOString()
-      });
+      setSyncState('saving');
+      setSyncMessage('Writing planner state to Supabase…');
+      void (async () => {
+        const { error } = await client.from('planner_state').upsert({
+          id: REMOTE_STATE_ID,
+          payload: { faculty, courses, activities, assignments, selectedAcademicYear },
+          updated_at: new Date().toISOString()
+        });
+        if (error) {
+          setSyncState('error');
+          setSyncMessage(`Supabase write failed: ${error.message}`);
+        } else {
+          setSyncState('saved');
+          setSyncMessage('Supabase sync saved.');
+        }
+      })();
     }, 500);
     return () => clearTimeout(handle);
   }, [faculty, courses, activities, assignments, selectedAcademicYear, hydrated]);
@@ -103,8 +127,8 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const value = useMemo(
-    () => ({ faculty, courses, activities, scenarios, academicYears, selectedAcademicYear, qualifications, assignments, setFaculty, setCourses, setActivities, setAssignments, setSelectedAcademicYear, resetToSeed }),
-    [faculty, courses, activities, scenarios, academicYears, selectedAcademicYear, qualifications, assignments]
+    () => ({ faculty, courses, activities, scenarios, academicYears, selectedAcademicYear, qualifications, assignments, setFaculty, setCourses, setActivities, setAssignments, setSelectedAcademicYear, syncState, syncMessage, resetToSeed }),
+    [faculty, courses, activities, scenarios, academicYears, selectedAcademicYear, qualifications, assignments, syncState, syncMessage]
   );
 
   return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;

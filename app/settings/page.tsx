@@ -9,7 +9,7 @@ export default function SettingsPage() {
   const [courseRows, setCourseRows] = useState(0);
   const [message, setMessage] = useState('');
   const role = process.env.NEXT_PUBLIC_APP_ROLE ?? 'admin';
-  const { setFaculty, setCourses } = useAppData();
+  const { setFaculty, setCourses, syncState, syncMessage } = useAppData();
 
   const parseAndApply = async (file: File, type: 'faculty' | 'courses') => {
     if (!file) return;
@@ -38,6 +38,9 @@ export default function SettingsPage() {
       <section className="rounded-lg border bg-white p-4">
         <h2 className="text-lg font-semibold">Authentication + Access</h2>
         <p className="text-sm text-slate-700">Current client role: <strong>{role}</strong> (admin can edit; viewer is read-only).</p>
+        <p className={`mt-2 rounded p-2 text-sm ${syncState === 'error' ? 'bg-red-100 text-red-800' : syncState === 'saved' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}`}>
+          Sync status: <strong>{syncState}</strong> — {syncMessage}
+        </p>
       </section>
 
       <section className="rounded-lg border bg-white p-4">
@@ -61,6 +64,21 @@ export default function SettingsPage() {
         </label>
         <p className="mt-3 text-sm text-slate-600">Imported rows — Faculty: {facultyRows}, Courses: {courseRows}</p>
         {message ? <p className="mt-2 rounded bg-indigo-50 p-2 text-sm text-indigo-900">{message}</p> : null}
+      </section>
+
+      <section className="rounded-lg border bg-white p-4">
+        <h2 className="mb-2 text-lg font-semibold">CSV Format Reference</h2>
+        <p className="mb-2 text-sm text-slate-600">Use the following headers in row 1 (comma-separated):</p>
+        <div className="grid gap-3 md:grid-cols-2">
+          <div>
+            <p className="mb-1 text-sm font-semibold">Faculty CSV headers</p>
+            <code className="block rounded bg-slate-100 p-2 text-xs">prefix,name,program,rank_or_role,annual_workload_target,fall_target,winter_target,spring_target,summer_target,notes</code>
+          </div>
+          <div>
+            <p className="mb-1 text-sm font-semibold">Courses CSV headers</p>
+            <code className="block rounded bg-slate-100 p-2 text-xs">prefix,number,title,program,credit_hours,default_workload_units,annual_sections_required,is_required,normally_offered_fall,normally_offered_winter,normally_offered_spring,normally_offered_summer,notes</code>
+          </div>
+        </div>
       </section>
     </div>
   );

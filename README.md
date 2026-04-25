@@ -64,6 +64,7 @@ Faculty Load Matrix is a highly visual workload board for planning an academic y
 ### Import (starter utilities)
 - Faculty import (`.csv`; `.xlsx/.xls` accepted but must be exported to CSV before parsing)
 - Courses import (`.csv`; `.xlsx/.xls` accepted but must be exported to CSV before parsing)
+- Settings page includes required header templates for both CSV formats.
 
 ## Supabase setup
 1. Create a Supabase project.
@@ -73,7 +74,7 @@ Faculty Load Matrix is a highly visual workload board for planning an academic y
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
    NEXT_PUBLIC_APP_ROLE=admin
    ```
-3. Run SQL migration in `supabase/migrations/001_init.sql`.
+3. Run SQL migrations in order: `001_init.sql`, `002_planner_state.sql`, `003_planner_state_anon.sql`.
 4. Run `supabase/seed.sql`.
 5. Configure JWT/user metadata to include `app_role` (`admin` or `viewer`) for RLS policy checks.
 
