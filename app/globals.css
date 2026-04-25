@@ -39,6 +39,20 @@ html.dark .text-slate-700 {
   @apply text-slate-300;
 }
 
+html.dark input,
+html.dark select,
+html.dark textarea {
+  @apply bg-slate-800 text-slate-100 border-slate-600;
+}
+
+html.dark button {
+  @apply border-slate-600;
+}
+
+html.dark .bg-indigo-50 {
+  @apply bg-slate-700 text-slate-100;
+}
+
 .overloaded-glow {
   box-shadow: 0 0 0 rgba(239, 68, 68, 0.2);
   animation: overloadedPulse 1.5s ease-in-out infinite;

@@ -14,7 +14,7 @@ export default function AdminPage() {
   const { faculty, courses, activities, assignments, academicYears, selectedAcademicYear, setSelectedAcademicYear, setFaculty, setCourses, setActivities, setAssignments, resetToSeed } = useAppData();
   const role = process.env.NEXT_PUBLIC_APP_ROLE ?? 'admin';
 
-  const [newFaculty, setNewFaculty] = useState<{ prefix: string; name: string; program: Program; rank_or_role: string; annual_workload_target: number; fall_target: number; winter_target: number; spring_target: number; summer_target: number }>({ prefix: 'Dr.', name: '', program: 'Mechanical Engineering', rank_or_role: 'Faculty', annual_workload_target: 27, fall_target: 9, winter_target: 9, spring_target: 9, summer_target: 0 });
+  const [newFaculty, setNewFaculty] = useState<{ prefix: string; name: string; program: Program; rank_or_role: string; annual_workload_target: number; fall_target: number; winter_target: number; spring_target: number; summer_target: number }>({ prefix: 'Dr.', name: '', program: 'Mechanical Engineering', rank_or_role: 'Faculty', annual_workload_target: 30, fall_target: 10, winter_target: 10, spring_target: 10, summer_target: 0 });
   const [newCourse, setNewCourse] = useState<{ prefix: string; number: string; title: string; program: Program; credit_hours: number; default_workload_units: number; annual_sections_required: number; is_required: boolean }>({ prefix: 'MEEN', number: '', title: '', program: 'Mechanical Engineering', credit_hours: 3, default_workload_units: 3, annual_sections_required: 1, is_required: true });
   const [newAssignment, setNewAssignment] = useState({ faculty_id: faculty[0]?.id ?? '', quarter: 'Fall' as Quarter, item_type: 'course' as 'course' | 'activity', course_id: courses[0]?.id ?? '', activity_id: activities[0]?.id ?? '', workload_units: 3, status: 'planned' as WorkloadAssignment['status'] });
   const [newActivity, setNewActivity] = useState({ title: '', category: 'other' as const, default_workload_units: 1 });
@@ -103,7 +103,7 @@ export default function AdminPage() {
             <option value="Other">Other</option>
           </select>
           <input className="rounded border p-2 text-sm" placeholder="Role" value={newFaculty.rank_or_role} onChange={(e) => setNewFaculty((p) => ({ ...p, rank_or_role: e.target.value }))} />
-          <button onClick={createFaculty} className="rounded bg-slate-900 px-3 py-2 text-sm text-white">Add Faculty (27/9/9/9/0)</button>
+          <button onClick={createFaculty} className="rounded bg-slate-900 px-3 py-2 text-sm text-white">Add Faculty (30/10/10/10/0)</button>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-sm">
