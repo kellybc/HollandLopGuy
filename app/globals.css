@@ -99,3 +99,51 @@ html.dark .bg-red-100 {
 .matrix-grid {
   grid-template-columns: 220px repeat(4, minmax(240px, 1fr));
 }
+
+.matrix-block {
+  @apply text-slate-900;
+}
+
+.matrix-block-course-planned {
+  @apply border-indigo-300 bg-indigo-50;
+}
+
+.matrix-block-course-confirmed {
+  @apply border-blue-300 bg-blue-50;
+}
+
+.matrix-block-activity-planned {
+  @apply border-teal-300 bg-teal-50;
+}
+
+.matrix-block-activity-confirmed {
+  @apply border-emerald-300 bg-emerald-50;
+}
+
+.matrix-block-problem {
+  @apply border-red-300 bg-red-50;
+}
+
+html.dark .matrix-block {
+  @apply text-slate-100;
+}
+
+html.dark .matrix-block-course-planned {
+  @apply border-indigo-700 bg-indigo-950/60;
+}
+
+html.dark .matrix-block-course-confirmed {
+  @apply border-blue-700 bg-blue-950/60;
+}
+
+html.dark .matrix-block-activity-planned {
+  @apply border-teal-700 bg-teal-950/60;
+}
+
+html.dark .matrix-block-activity-confirmed {
+  @apply border-emerald-700 bg-emerald-950/60;
+}
+
+html.dark .matrix-block-problem {
+  @apply border-red-700 bg-red-950/60;
+}

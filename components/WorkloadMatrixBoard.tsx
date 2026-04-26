@@ -186,7 +186,14 @@ export function WorkloadMatrixBoard() {
                           {items.length} assignments
                         </div>
                       ) : (
-                        <MatrixCell facultyId={f.id} quarter={q} assignments={items} canEdit={canEdit} onSelect={setSelected} />
+                        <MatrixCell
+                          facultyId={f.id}
+                          quarter={q}
+                          assignments={items}
+                          canEdit={canEdit}
+                          onSelect={setSelected}
+                          onUnassign={(assignmentId) => setAssignments((prev) => prev.filter((assignment) => assignment.id !== assignmentId))}
+                        />
                       )}
                     </div>
                   );
