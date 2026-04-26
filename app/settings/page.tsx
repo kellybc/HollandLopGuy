@@ -39,7 +39,7 @@ export default function SettingsPage() {
       <section className="rounded-lg border bg-white p-4">
         <h2 className="text-lg font-semibold">Authentication + Access</h2>
         <p className="text-sm text-slate-700">Current client role: <strong>{role}</strong> (admin can edit; viewer is read-only).</p>
-        <p className="mt-1 text-xs text-slate-600">Prototype sync stores all planner data in one row: <code className="rounded bg-slate-100 px-1 py-0.5">planner_state.id = global</code>.</p>
+        <p className="mt-1 text-xs text-slate-600">Production sync stores data in relational tables: <code className="rounded bg-slate-100 px-1 py-0.5">academic_years</code>, <code className="rounded bg-slate-100 px-1 py-0.5">scenarios</code>, <code className="rounded bg-slate-100 px-1 py-0.5">faculty</code>, <code className="rounded bg-slate-100 px-1 py-0.5">courses</code>, <code className="rounded bg-slate-100 px-1 py-0.5">activities</code>, <code className="rounded bg-slate-100 px-1 py-0.5">faculty_course_qualifications</code>, and <code className="rounded bg-slate-100 px-1 py-0.5">workload_assignments</code>.</p>
         <p className="mt-1 text-xs text-slate-600">
           Last remote update: <strong>{remoteUpdatedAt ? new Date(remoteUpdatedAt).toLocaleString() : 'not yet detected'}</strong>
         </p>
@@ -64,10 +64,10 @@ export default function SettingsPage() {
             disabled={syncState === 'disabled' || syncState === 'loading' || syncState === 'saving'}
             onClick={async () => {
               const ok = await checkRemoteState();
-              setSyncActionMessage(ok ? 'Remote row verified in Supabase.' : 'Remote verification failed. Check Sync status above for details.');
+              setSyncActionMessage(ok ? 'Remote tables verified in Supabase.' : 'Remote verification failed. Check Sync status above for details.');
             }}
           >
-            Verify remote row
+            Verify remote tables
           </button>
           {syncActionMessage ? <span className="text-xs text-slate-600">{syncActionMessage}</span> : null}
         </div>

@@ -74,10 +74,10 @@ Faculty Load Matrix is a highly visual workload board for planning an academic y
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
    NEXT_PUBLIC_APP_ROLE=admin
    ```
-3. Run SQL migrations in order: `001_init.sql`, `002_planner_state.sql`, `003_planner_state_anon.sql`.
+3. Run SQL migrations in order: `001_init.sql`, `002_planner_state.sql`, `003_planner_state_anon.sql`, `004_relational_sync.sql`.
 4. Run `supabase/seed.sql`.
 5. Configure JWT/user metadata to include `app_role` (`admin` or `viewer`) for RLS policy checks.
-6. App sync writes to `planner_state` as a single document row with `id = 'global'` (not per-table inserts into `faculty/courses/activities` yet).
+6. App sync writes/reads all planner entities from relational tables (`academic_years`, `scenarios`, `faculty`, `courses`, `activities`, `faculty_course_qualifications`, `workload_assignments`).
 
 ### Troubleshooting: "Supabase not connected"
 - In Settings, if sync status is `disabled`, your browser app likely cannot read required env vars.
@@ -88,10 +88,14 @@ Faculty Load Matrix is a highly visual workload board for planning an academic y
 - Restart `npm run dev` after editing `.env.local`.
 - Confirm migration `003_planner_state_anon.sql` is applied if you are using anon access in prototype mode.
 - In Settings, use **Sync to Supabase now** to force an immediate write and confirm persistence.
-- In Settings, use **Verify remote row** and check **Last remote update** to confirm Supabase returned the saved `planner_state` row.
-- In Supabase SQL editor, this query should return one row when sync is working:
+- In Settings, use **Verify remote tables** and check **Last remote update** to confirm Supabase returned data.
+- In Supabase SQL editor, this query should return counts > 0 when sync is working:
   ```sql
-  select id, updated_at from planner_state where id = 'global';
+  select
+    (select count(*) from faculty) as faculty_count,
+    (select count(*) from courses) as courses_count,
+    (select count(*) from activities) as activities_count,
+    (select count(*) from workload_assignments) as assignment_count;
   ```
 
 ## Local development
