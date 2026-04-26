@@ -77,7 +77,7 @@ export default function SettingsPage() {
             <ol className="mt-2 list-decimal space-y-1 pl-5">
               <li>Create a Supabase project and copy Project URL + anon key.</li>
               <li>Add these values to <code className="rounded bg-slate-200 px-1 py-0.5">.env.local</code> and restart the dev server.</li>
-              <li>Run migrations in order: <code className="rounded bg-slate-200 px-1 py-0.5">001_init.sql</code>, <code className="rounded bg-slate-200 px-1 py-0.5">002_planner_state.sql</code>, <code className="rounded bg-slate-200 px-1 py-0.5">003_planner_state_anon.sql</code>.</li>
+              <li>Run migrations in order: <code className="rounded bg-slate-200 px-1 py-0.5">001_init.sql</code>, <code className="rounded bg-slate-200 px-1 py-0.5">002_planner_state.sql</code>, <code className="rounded bg-slate-200 px-1 py-0.5">003_planner_state_anon.sql</code>, <code className="rounded bg-slate-200 px-1 py-0.5">004_relational_sync.sql</code>.</li>
             </ol>
             <code className="mt-2 block whitespace-pre-wrap rounded bg-slate-100 p-2 text-xs">
               NEXT_PUBLIC_SUPABASE_URL=your-project-url{'\n'}

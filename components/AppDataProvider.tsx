@@ -29,6 +29,7 @@ type AppDataState = {
 };
 
 const STORAGE_KEY = 'flm-admin-data-v1';
+const LEGACY_STATE_ID = 'global';
 const AppDataContext = createContext<AppDataState | null>(null);
 
 function asNumber(value: unknown, fallback = 0) {
@@ -54,6 +55,22 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const [syncMessage, setSyncMessage] = useState(isSupabaseConfigured ? 'Connecting to Supabase…' : 'Supabase not configured; using local browser storage only.');
   const [remoteUpdatedAt, setRemoteUpdatedAt] = useState<string | null>(null);
 
+  const writeLegacyPlannerState = useCallback(async () => {
+    if (!(isSupabaseConfigured && supabase)) return false;
+    const { data, error } = await supabase
+      .from('planner_state')
+      .upsert({
+        id: LEGACY_STATE_ID,
+        payload: { faculty, courses, activities, assignments, selectedAcademicYear },
+        updated_at: new Date().toISOString()
+      })
+      .select('updated_at')
+      .single();
+    if (error) return false;
+    setRemoteUpdatedAt(data?.updated_at ?? null);
+    return true;
+  }, [faculty, courses, activities, assignments, selectedAcademicYear]);
+
   const writeToSupabase = useCallback(async () => {
     if (!(isSupabaseConfigured && supabase)) return false;
     const nowIso = new Date().toISOString();
@@ -71,6 +88,14 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
     for (const [table, rows] of tables) {
       const { error: upsertError } = await supabase.from(table).upsert(rows, { onConflict: 'id' });
       if (upsertError) {
+        if (upsertError.message.includes('invalid input syntax for type uuid')) {
+          const legacyOk = await writeLegacyPlannerState();
+          if (legacyOk) {
+            setSyncState('saved');
+            setSyncMessage('Legacy planner_state sync saved. Run migration 004_relational_sync.sql to enable full relational sync.');
+            return true;
+          }
+        }
         setSyncState('error');
         setSyncMessage(`Supabase write failed (${table}): ${upsertError.message}`);
         return false;
@@ -94,7 +119,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
     setSyncState('saved');
     setSyncMessage('Supabase relational sync saved (all tables).');
     return true;
-  }, [academicYears, scenarios, faculty, courses, activities, qualifications, assignments, selectedAcademicYear]);
+  }, [academicYears, scenarios, faculty, courses, activities, qualifications, assignments, selectedAcademicYear, writeLegacyPlannerState]);
 
   useEffect(() => {
     const load = async () => {
@@ -143,8 +168,21 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
           assignmentsResult.error
         ].find(Boolean);
         if (firstError) {
-          setSyncState('error');
-          setSyncMessage(`Supabase read failed: ${firstError.message}`);
+          const legacy = await supabase.from('planner_state').select('payload, updated_at').eq('id', LEGACY_STATE_ID).maybeSingle();
+          if (legacy.error) {
+            setSyncState('error');
+            setSyncMessage(`Supabase read failed: ${firstError.message}`);
+          } else {
+            const payload = legacy.data?.payload as Partial<AppDataState> | undefined;
+            if (payload?.faculty) setFaculty(payload.faculty);
+            if (payload?.courses) setCourses(payload.courses);
+            if (payload?.activities) setActivities(payload.activities);
+            if (payload?.assignments) setAssignments(payload.assignments);
+            if (payload?.selectedAcademicYear) setSelectedAcademicYear(payload.selectedAcademicYear);
+            setRemoteUpdatedAt(legacy.data?.updated_at ?? null);
+            setSyncState('saved');
+            setSyncMessage('Loaded legacy planner_state sync. Run migration 004_relational_sync.sql for relational mode.');
+          }
         } else {
           const remoteYears = (yearsResult.data ?? []) as AcademicYear[];
           const remoteScenarios = (scenariosResult.data ?? []) as Scenario[];

@@ -86,7 +86,7 @@ Faculty Load Matrix is a highly visual workload board for planning an academic y
   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
   - `NEXT_PUBLIC_APP_ROLE=admin` (or `viewer`)
 - Restart `npm run dev` after editing `.env.local`.
-- Confirm migration `003_planner_state_anon.sql` is applied if you are using anon access in prototype mode.
+- Confirm migrations `003_planner_state_anon.sql` and `004_relational_sync.sql` are applied for full browser-based relational sync.
 - In Settings, use **Sync to Supabase now** to force an immediate write and confirm persistence.
 - In Settings, use **Verify remote tables** and check **Last remote update** to confirm Supabase returned data.
 - In Supabase SQL editor, this query should return counts > 0 when sync is working:
