@@ -92,14 +92,27 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const writeToSupabase = useCallback(async () => {
     if (!(isSupabaseConfigured && supabase)) return false;
     const nowIso = new Date().toISOString();
+    const facultyIds = new Set(faculty.map((row) => row.id));
+    const courseIds = new Set(courses.map((row) => row.id));
+    const activityIds = new Set(activities.map((row) => row.id));
+    const scenarioIds = new Set(scenarios.map((row) => row.id));
+    const safeQualifications = qualifications.filter((row) => facultyIds.has(row.faculty_id) && courseIds.has(row.course_id));
+    const safeAssignments = assignments.filter((row) => {
+      const hasFaculty = facultyIds.has(row.faculty_id);
+      const hasScenario = scenarioIds.has(row.scenario_id);
+      const hasItem = row.item_type === 'course'
+        ? Boolean(row.course_id && courseIds.has(row.course_id))
+        : Boolean(row.activity_id && activityIds.has(row.activity_id));
+      return hasFaculty && hasScenario && hasItem;
+    });
     const payloads = {
       academic_years: academicYears.map((row) => ({ ...row, active: row.label === selectedAcademicYear })),
       scenarios,
       faculty: faculty.map((row) => ({ ...row, prefix: row.prefix ?? 'Dr.' })),
       courses,
       activities,
-      faculty_course_qualifications: qualifications,
-      workload_assignments: assignments.map((row) => ({ ...row, updated_at: nowIso }))
+      faculty_course_qualifications: safeQualifications,
+      workload_assignments: safeAssignments.map((row) => ({ ...row, updated_at: nowIso }))
     } as const;
 
     const tables = Object.entries(payloads) as Array<[keyof typeof payloads, Record<string, unknown>[]]>;
@@ -235,20 +248,18 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
             const activeYearLabel = remoteYears.find((year) => year.active)?.label ?? remoteYears[0].label;
             setSelectedAcademicYear(activeYearLabel);
           }
-          if (remoteScenarios.length) setScenarios(remoteScenarios);
-          if (remoteFaculty.length) setFaculty(remoteFaculty);
-          if (remoteCourses.length) setCourses(remoteCourses);
-          if (remoteActivities.length) setActivities(remoteActivities);
-          if (remoteQualifications.length) setQualifications(remoteQualifications);
-          if (remoteAssignments.length) {
-            setAssignments(remoteAssignments);
-            const updatedAt = remoteAssignments
-              .map((row) => row.updated_at)
-              .filter(Boolean)
-              .sort()
-              .at(-1);
-            setRemoteUpdatedAt(updatedAt ?? null);
-          }
+          setScenarios(remoteScenarios);
+          setFaculty(remoteFaculty);
+          setCourses(remoteCourses);
+          setActivities(remoteActivities);
+          setQualifications(remoteQualifications);
+          setAssignments(remoteAssignments);
+          const updatedAt = remoteAssignments
+            .map((row) => row.updated_at)
+            .filter(Boolean)
+            .sort()
+            .at(-1);
+          setRemoteUpdatedAt(updatedAt ?? null);
           setSyncState('saved');
           setSyncMessage('Supabase relational sync connected.');
         }
