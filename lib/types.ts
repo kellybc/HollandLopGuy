@@ -98,3 +98,11 @@ export type Scenario = {
   description?: string;
   is_active: boolean;
 };
+
+export type BlockColorConfig = {
+  course_planned: string;
+  course_confirmed: string;
+  activity_planned: string;
+  activity_confirmed: string;
+  problem: string;
+};

@@ -74,7 +74,7 @@ Faculty Load Matrix is a highly visual workload board for planning an academic y
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
    NEXT_PUBLIC_APP_ROLE=admin
    ```
-3. Run SQL migrations in order: `001_init.sql`, `002_planner_state.sql`, `003_planner_state_anon.sql`, `004_relational_sync.sql`, `005_backfill_missing_columns.sql`.
+3. Run SQL migrations in order: `001_init.sql`, `002_planner_state.sql`, `003_planner_state_anon.sql`, `004_relational_sync.sql`, `005_backfill_missing_columns.sql`, `006_backfill_assignment_section.sql`.
 4. Run `supabase/seed.sql`.
 5. Configure JWT/user metadata to include `app_role` (`admin` or `viewer`) for RLS policy checks.
 6. App sync writes/reads all planner entities from relational tables (`academic_years`, `scenarios`, `faculty`, `courses`, `activities`, `faculty_course_qualifications`, `workload_assignments`).
@@ -86,7 +86,7 @@ Faculty Load Matrix is a highly visual workload board for planning an academic y
   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
   - `NEXT_PUBLIC_APP_ROLE=admin` (or `viewer`)
 - Restart `npm run dev` after editing `.env.local`.
-- Confirm migrations `003_planner_state_anon.sql`, `004_relational_sync.sql`, and `005_backfill_missing_columns.sql` are applied for full browser-based relational sync.
+- Confirm migrations `003_planner_state_anon.sql`, `004_relational_sync.sql`, `005_backfill_missing_columns.sql`, and `006_backfill_assignment_section.sql` are applied for full browser-based relational sync.
 - In Settings, use **Sync to Supabase now** to force an immediate write and confirm persistence.
 - In Settings, use **Verify remote tables** and check **Last remote update** to confirm Supabase returned data.
 - In Supabase SQL editor, this query should return counts > 0 when sync is working:

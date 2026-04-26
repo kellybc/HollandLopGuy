@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import { academicYears as seedAcademicYears, activities as seedActivities, courses as seedCourses, faculty as seedFaculty, initialAssignments, qualifications as seedQualifications, scenarios as seedScenarios } from '@/lib/seed-data';
-import { AcademicYear, Activity, Course, Faculty, FacultyCourseQualification, Scenario, WorkloadAssignment } from '@/lib/types';
+import { AcademicYear, Activity, BlockColorConfig, Course, Faculty, FacultyCourseQualification, Scenario, WorkloadAssignment } from '@/lib/types';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 
 type AppDataState = {
@@ -23,14 +23,25 @@ type AppDataState = {
   syncState: 'disabled' | 'loading' | 'saving' | 'saved' | 'error';
   syncMessage: string;
   remoteUpdatedAt: string | null;
+  blockColors: BlockColorConfig;
+  setBlockColors: Dispatch<SetStateAction<BlockColorConfig>>;
   forceSync: () => Promise<boolean>;
   checkRemoteState: () => Promise<boolean>;
   resetToSeed: () => void;
 };
 
 const STORAGE_KEY = 'flm-admin-data-v1';
+const BLOCK_COLORS_KEY = 'flm-block-colors-v1';
 const LEGACY_STATE_ID = 'global';
 const AppDataContext = createContext<AppDataState | null>(null);
+
+const defaultBlockColors: BlockColorConfig = {
+  course_planned: '#e0e7ff',
+  course_confirmed: '#dbeafe',
+  activity_planned: '#ccfbf1',
+  activity_confirmed: '#d1fae5',
+  problem: '#fee2e2'
+};
 
 function asNumber(value: unknown, fallback = 0) {
   const parsed = Number(value);
@@ -56,6 +67,11 @@ async function upsertWithCompatibility(table: string, rows: Record<string, unkno
     return supabase.from(table).upsert(compatibleRows, { onConflict: 'id' });
   }
 
+  if (table === 'workload_assignments' && primaryAttempt.error.message.includes('section')) {
+    const compatibleRows = rows.map(({ section: _ignored, ...rest }) => rest);
+    return supabase.from(table).upsert(compatibleRows, { onConflict: 'id' });
+  }
+
   return primaryAttempt;
 }
 
@@ -72,6 +88,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const [syncState, setSyncState] = useState<'disabled' | 'loading' | 'saving' | 'saved' | 'error'>(isSupabaseConfigured ? 'loading' : 'disabled');
   const [syncMessage, setSyncMessage] = useState(isSupabaseConfigured ? 'Connecting to Supabase…' : 'Supabase not configured; using local browser storage only.');
   const [remoteUpdatedAt, setRemoteUpdatedAt] = useState<string | null>(null);
+  const [blockColors, setBlockColors] = useState<BlockColorConfig>(defaultBlockColors);
 
   const writeLegacyPlannerState = useCallback(async () => {
     if (!(isSupabaseConfigured && supabase)) return false;
@@ -163,6 +180,15 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
           if (parsed.activities) setActivities(parsed.activities);
           if (parsed.assignments) setAssignments(parsed.assignments);
           if (parsed.selectedAcademicYear) setSelectedAcademicYear(parsed.selectedAcademicYear);
+        } catch {
+          // no-op
+        }
+      }
+      const rawBlockColors = localStorage.getItem(BLOCK_COLORS_KEY);
+      if (rawBlockColors) {
+        try {
+          const parsed = JSON.parse(rawBlockColors) as Partial<BlockColorConfig>;
+          setBlockColors((prev) => ({ ...prev, ...parsed }));
         } catch {
           // no-op
         }
@@ -279,6 +305,11 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!hydrated) return;
+    localStorage.setItem(BLOCK_COLORS_KEY, JSON.stringify(blockColors));
+  }, [blockColors, hydrated]);
+
+  useEffect(() => {
+    if (!hydrated) return;
     if (!(isSupabaseConfigured && supabase)) return;
     const handle = setTimeout(() => {
       setSyncState('saving');
@@ -338,11 +369,13 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
     setAssignments(initialAssignments);
     setSelectedAcademicYear(seedAcademicYears.find((a) => a.active)?.label ?? seedAcademicYears[0].label);
     localStorage.removeItem(STORAGE_KEY);
+    setBlockColors(defaultBlockColors);
+    localStorage.removeItem(BLOCK_COLORS_KEY);
   };
 
   const value = useMemo(
-    () => ({ faculty, courses, activities, scenarios, academicYears, selectedAcademicYear, qualifications, assignments, setFaculty, setCourses, setActivities, setAssignments, setSelectedAcademicYear, syncState, syncMessage, remoteUpdatedAt, forceSync, checkRemoteState, resetToSeed }),
-    [faculty, courses, activities, scenarios, academicYears, selectedAcademicYear, qualifications, assignments, syncState, syncMessage, remoteUpdatedAt, forceSync, checkRemoteState]
+    () => ({ faculty, courses, activities, scenarios, academicYears, selectedAcademicYear, qualifications, assignments, setFaculty, setCourses, setActivities, setAssignments, setSelectedAcademicYear, syncState, syncMessage, remoteUpdatedAt, blockColors, setBlockColors, forceSync, checkRemoteState, resetToSeed }),
+    [faculty, courses, activities, scenarios, academicYears, selectedAcademicYear, qualifications, assignments, syncState, syncMessage, remoteUpdatedAt, blockColors, forceSync, checkRemoteState]
   );
 
   return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;

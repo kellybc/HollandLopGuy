@@ -11,7 +11,7 @@ function makeId() {
 }
 
 export default function AdminPage() {
-  const { faculty, courses, activities, assignments, academicYears, selectedAcademicYear, setSelectedAcademicYear, setFaculty, setCourses, setActivities, setAssignments, resetToSeed } = useAppData();
+  const { faculty, courses, activities, assignments, academicYears, selectedAcademicYear, setSelectedAcademicYear, setFaculty, setCourses, setActivities, setAssignments, blockColors, setBlockColors, resetToSeed } = useAppData();
   const role = process.env.NEXT_PUBLIC_APP_ROLE ?? 'admin';
 
   const [newFaculty, setNewFaculty] = useState<{ prefix: string; name: string; program: Program; rank_or_role: string; annual_workload_target: number; fall_target: number; winter_target: number; spring_target: number; summer_target: number }>({ prefix: 'Dr.', name: '', program: 'Mechanical Engineering', rank_or_role: 'Faculty', annual_workload_target: 30, fall_target: 10, winter_target: 10, spring_target: 10, summer_target: 0 });
@@ -87,6 +87,29 @@ export default function AdminPage() {
             </select>
             <button onClick={resetToSeed} className="rounded border border-red-300 px-3 py-2 text-sm text-red-700">Reset to Seed Defaults</button>
           </div>
+        </div>
+      </section>
+
+      <section className="rounded-lg border bg-white p-4">
+        <h3 className="mb-2 text-lg font-semibold">Matrix Color Coding</h3>
+        <p className="mb-3 text-sm text-slate-600">Customize assignment block colors used on the workload matrix.</p>
+        <div className="grid gap-3 md:grid-cols-3">
+          {([
+            ['course_planned', 'Course · Planned'],
+            ['course_confirmed', 'Course · Confirmed'],
+            ['activity_planned', 'Activity · Planned'],
+            ['activity_confirmed', 'Activity · Confirmed'],
+            ['problem', 'Problem']
+          ] as const).map(([key, label]) => (
+            <label key={key} className="flex items-center justify-between gap-2 rounded border p-2 text-sm">
+              <span>{label}</span>
+              <input
+                type="color"
+                value={blockColors[key]}
+                onChange={(e) => setBlockColors((prev) => ({ ...prev, [key]: e.target.value }))}
+              />
+            </label>
+          ))}
         </div>
       </section>
 
