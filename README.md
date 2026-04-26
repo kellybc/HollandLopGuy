@@ -77,6 +77,7 @@ Faculty Load Matrix is a highly visual workload board for planning an academic y
 3. Run SQL migrations in order: `001_init.sql`, `002_planner_state.sql`, `003_planner_state_anon.sql`.
 4. Run `supabase/seed.sql`.
 5. Configure JWT/user metadata to include `app_role` (`admin` or `viewer`) for RLS policy checks.
+6. App sync writes to `planner_state` as a single document row with `id = 'global'` (not per-table inserts into `faculty/courses/activities` yet).
 
 ### Troubleshooting: "Supabase not connected"
 - In Settings, if sync status is `disabled`, your browser app likely cannot read required env vars.
@@ -86,6 +87,7 @@ Faculty Load Matrix is a highly visual workload board for planning an academic y
   - `NEXT_PUBLIC_APP_ROLE=admin` (or `viewer`)
 - Restart `npm run dev` after editing `.env.local`.
 - Confirm migration `003_planner_state_anon.sql` is applied if you are using anon access in prototype mode.
+- In Settings, use **Sync to Supabase now** to force an immediate write and confirm persistence.
 
 ## Local development
 ```bash

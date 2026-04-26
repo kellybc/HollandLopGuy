@@ -8,8 +8,9 @@ export default function SettingsPage() {
   const [facultyRows, setFacultyRows] = useState(0);
   const [courseRows, setCourseRows] = useState(0);
   const [message, setMessage] = useState('');
+  const [syncActionMessage, setSyncActionMessage] = useState('');
   const role = process.env.NEXT_PUBLIC_APP_ROLE ?? 'admin';
-  const { setFaculty, setCourses, syncState, syncMessage } = useAppData();
+  const { setFaculty, setCourses, syncState, syncMessage, forceSync } = useAppData();
 
   const parseAndApply = async (file: File, type: 'faculty' | 'courses') => {
     if (!file) return;
@@ -38,9 +39,24 @@ export default function SettingsPage() {
       <section className="rounded-lg border bg-white p-4">
         <h2 className="text-lg font-semibold">Authentication + Access</h2>
         <p className="text-sm text-slate-700">Current client role: <strong>{role}</strong> (admin can edit; viewer is read-only).</p>
+        <p className="mt-1 text-xs text-slate-600">Prototype sync stores all planner data in one row: <code className="rounded bg-slate-100 px-1 py-0.5">planner_state.id = global</code>.</p>
         <p className={`mt-2 rounded p-2 text-sm ${syncState === 'error' ? 'bg-red-100 text-red-800' : syncState === 'saved' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}`}>
           Sync status: <strong>{syncState}</strong> — {syncMessage}
         </p>
+        <div className="mt-3 flex items-center gap-2">
+          <button
+            type="button"
+            className="rounded border border-slate-300 px-3 py-1.5 text-sm"
+            disabled={syncState === 'disabled' || syncState === 'saving'}
+            onClick={async () => {
+              const ok = await forceSync();
+              setSyncActionMessage(ok ? 'Manual sync complete.' : 'Manual sync failed. Check Sync status above for details.');
+            }}
+          >
+            Sync to Supabase now
+          </button>
+          {syncActionMessage ? <span className="text-xs text-slate-600">{syncActionMessage}</span> : null}
+        </div>
         {(syncState === 'disabled' || syncState === 'error') ? (
           <div className="mt-3 rounded border border-slate-300 bg-slate-50 p-3 text-sm text-slate-700">
             <p className="font-semibold">Supabase not connected? Do this:</p>

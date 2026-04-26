@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import { academicYears as seedAcademicYears, activities as seedActivities, courses as seedCourses, faculty as seedFaculty, initialAssignments, qualifications as seedQualifications, scenarios as seedScenarios } from '@/lib/seed-data';
 import { AcademicYear, Activity, Course, Faculty, FacultyCourseQualification, Scenario, WorkloadAssignment } from '@/lib/types';
@@ -22,6 +22,7 @@ type AppDataState = {
   setSelectedAcademicYear: Dispatch<SetStateAction<string>>;
   syncState: 'disabled' | 'loading' | 'saving' | 'saved' | 'error';
   syncMessage: string;
+  forceSync: () => Promise<boolean>;
   resetToSeed: () => void;
 };
 
@@ -42,6 +43,23 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
   const [syncState, setSyncState] = useState<'disabled' | 'loading' | 'saving' | 'saved' | 'error'>(isSupabaseConfigured ? 'loading' : 'disabled');
   const [syncMessage, setSyncMessage] = useState(isSupabaseConfigured ? 'Connecting to Supabase…' : 'Supabase not configured; using local browser storage only.');
+
+  const writeToSupabase = useCallback(async () => {
+    if (!(isSupabaseConfigured && supabase)) return false;
+    const { error } = await supabase.from('planner_state').upsert({
+      id: REMOTE_STATE_ID,
+      payload: { faculty, courses, activities, assignments, selectedAcademicYear },
+      updated_at: new Date().toISOString()
+    });
+    if (error) {
+      setSyncState('error');
+      setSyncMessage(`Supabase write failed: ${error.message}`);
+      return false;
+    }
+    setSyncState('saved');
+    setSyncMessage('Supabase sync saved.');
+    return true;
+  }, [faculty, courses, activities, assignments, selectedAcademicYear]);
 
   useEffect(() => {
     const load = async () => {
@@ -95,27 +113,27 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!hydrated) return;
     if (!(isSupabaseConfigured && supabase)) return;
-    const client = supabase;
     const handle = setTimeout(() => {
       setSyncState('saving');
       setSyncMessage('Writing planner state to Supabase…');
       void (async () => {
-        const { error } = await client.from('planner_state').upsert({
-          id: REMOTE_STATE_ID,
-          payload: { faculty, courses, activities, assignments, selectedAcademicYear },
-          updated_at: new Date().toISOString()
-        });
-        if (error) {
-          setSyncState('error');
-          setSyncMessage(`Supabase write failed: ${error.message}`);
-        } else {
-          setSyncState('saved');
-          setSyncMessage('Supabase sync saved.');
-        }
+        await writeToSupabase();
       })();
     }, 500);
     return () => clearTimeout(handle);
-  }, [faculty, courses, activities, assignments, selectedAcademicYear, hydrated]);
+  }, [hydrated, writeToSupabase]);
+
+  const forceSync = useCallback(async () => {
+    if (!(isSupabaseConfigured && supabase)) {
+      setSyncState('disabled');
+      setSyncMessage('Supabase not configured; cannot run manual sync.');
+      return false;
+    }
+    setSyncState('saving');
+    setSyncMessage('Manual sync in progress…');
+    const ok = await writeToSupabase();
+    return ok;
+  }, [writeToSupabase]);
 
   const resetToSeed = () => {
     setFaculty(seedFaculty);
@@ -127,8 +145,8 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const value = useMemo(
-    () => ({ faculty, courses, activities, scenarios, academicYears, selectedAcademicYear, qualifications, assignments, setFaculty, setCourses, setActivities, setAssignments, setSelectedAcademicYear, syncState, syncMessage, resetToSeed }),
-    [faculty, courses, activities, scenarios, academicYears, selectedAcademicYear, qualifications, assignments, syncState, syncMessage]
+    () => ({ faculty, courses, activities, scenarios, academicYears, selectedAcademicYear, qualifications, assignments, setFaculty, setCourses, setActivities, setAssignments, setSelectedAcademicYear, syncState, syncMessage, forceSync, resetToSeed }),
+    [faculty, courses, activities, scenarios, academicYears, selectedAcademicYear, qualifications, assignments, syncState, syncMessage, forceSync]
   );
 
   return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;
