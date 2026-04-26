@@ -10,7 +10,7 @@ export default function SettingsPage() {
   const [message, setMessage] = useState('');
   const [syncActionMessage, setSyncActionMessage] = useState('');
   const role = process.env.NEXT_PUBLIC_APP_ROLE ?? 'admin';
-  const { setFaculty, setCourses, syncState, syncMessage, forceSync } = useAppData();
+  const { setFaculty, setCourses, syncState, syncMessage, remoteUpdatedAt, forceSync, checkRemoteState } = useAppData();
 
   const parseAndApply = async (file: File, type: 'faculty' | 'courses') => {
     if (!file) return;
@@ -40,6 +40,9 @@ export default function SettingsPage() {
         <h2 className="text-lg font-semibold">Authentication + Access</h2>
         <p className="text-sm text-slate-700">Current client role: <strong>{role}</strong> (admin can edit; viewer is read-only).</p>
         <p className="mt-1 text-xs text-slate-600">Prototype sync stores all planner data in one row: <code className="rounded bg-slate-100 px-1 py-0.5">planner_state.id = global</code>.</p>
+        <p className="mt-1 text-xs text-slate-600">
+          Last remote update: <strong>{remoteUpdatedAt ? new Date(remoteUpdatedAt).toLocaleString() : 'not yet detected'}</strong>
+        </p>
         <p className={`mt-2 rounded p-2 text-sm ${syncState === 'error' ? 'bg-red-100 text-red-800' : syncState === 'saved' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}`}>
           Sync status: <strong>{syncState}</strong> — {syncMessage}
         </p>
@@ -54,6 +57,17 @@ export default function SettingsPage() {
             }}
           >
             Sync to Supabase now
+          </button>
+          <button
+            type="button"
+            className="rounded border border-slate-300 px-3 py-1.5 text-sm"
+            disabled={syncState === 'disabled' || syncState === 'loading' || syncState === 'saving'}
+            onClick={async () => {
+              const ok = await checkRemoteState();
+              setSyncActionMessage(ok ? 'Remote row verified in Supabase.' : 'Remote verification failed. Check Sync status above for details.');
+            }}
+          >
+            Verify remote row
           </button>
           {syncActionMessage ? <span className="text-xs text-slate-600">{syncActionMessage}</span> : null}
         </div>

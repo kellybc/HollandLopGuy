@@ -88,6 +88,11 @@ Faculty Load Matrix is a highly visual workload board for planning an academic y
 - Restart `npm run dev` after editing `.env.local`.
 - Confirm migration `003_planner_state_anon.sql` is applied if you are using anon access in prototype mode.
 - In Settings, use **Sync to Supabase now** to force an immediate write and confirm persistence.
+- In Settings, use **Verify remote row** and check **Last remote update** to confirm Supabase returned the saved `planner_state` row.
+- In Supabase SQL editor, this query should return one row when sync is working:
+  ```sql
+  select id, updated_at from planner_state where id = 'global';
+  ```
 
 ## Local development
 ```bash

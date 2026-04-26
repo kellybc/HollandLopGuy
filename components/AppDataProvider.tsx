@@ -22,7 +22,9 @@ type AppDataState = {
   setSelectedAcademicYear: Dispatch<SetStateAction<string>>;
   syncState: 'disabled' | 'loading' | 'saving' | 'saved' | 'error';
   syncMessage: string;
+  remoteUpdatedAt: string | null;
   forceSync: () => Promise<boolean>;
+  checkRemoteState: () => Promise<boolean>;
   resetToSeed: () => void;
 };
 
@@ -43,19 +45,25 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
   const [syncState, setSyncState] = useState<'disabled' | 'loading' | 'saving' | 'saved' | 'error'>(isSupabaseConfigured ? 'loading' : 'disabled');
   const [syncMessage, setSyncMessage] = useState(isSupabaseConfigured ? 'Connecting to Supabase…' : 'Supabase not configured; using local browser storage only.');
+  const [remoteUpdatedAt, setRemoteUpdatedAt] = useState<string | null>(null);
 
   const writeToSupabase = useCallback(async () => {
     if (!(isSupabaseConfigured && supabase)) return false;
-    const { error } = await supabase.from('planner_state').upsert({
-      id: REMOTE_STATE_ID,
-      payload: { faculty, courses, activities, assignments, selectedAcademicYear },
-      updated_at: new Date().toISOString()
-    });
+    const { data, error } = await supabase
+      .from('planner_state')
+      .upsert({
+        id: REMOTE_STATE_ID,
+        payload: { faculty, courses, activities, assignments, selectedAcademicYear },
+        updated_at: new Date().toISOString()
+      })
+      .select('updated_at')
+      .single();
     if (error) {
       setSyncState('error');
       setSyncMessage(`Supabase write failed: ${error.message}`);
       return false;
     }
+    setRemoteUpdatedAt(data?.updated_at ?? null);
     setSyncState('saved');
     setSyncMessage('Supabase sync saved.');
     return true;
@@ -80,7 +88,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       if (isSupabaseConfigured && supabase) {
         setSyncState('loading');
         setSyncMessage('Reading planner_state from Supabase…');
-        const { data, error } = await supabase.from('planner_state').select('payload').eq('id', REMOTE_STATE_ID).maybeSingle();
+        const { data, error } = await supabase.from('planner_state').select('payload, updated_at').eq('id', REMOTE_STATE_ID).maybeSingle();
         if (error) {
           setSyncState('error');
           setSyncMessage(`Supabase read failed: ${error.message}`);
@@ -93,6 +101,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
             if (payload.assignments) setAssignments(payload.assignments);
             if (payload.selectedAcademicYear) setSelectedAcademicYear(payload.selectedAcademicYear);
           }
+          setRemoteUpdatedAt(data?.updated_at ?? null);
           setSyncState('saved');
           setSyncMessage('Supabase sync connected.');
         }
@@ -135,6 +144,36 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
     return ok;
   }, [writeToSupabase]);
 
+  const checkRemoteState = useCallback(async () => {
+    if (!(isSupabaseConfigured && supabase)) {
+      setSyncState('disabled');
+      setSyncMessage('Supabase not configured; cannot verify remote state.');
+      return false;
+    }
+    setSyncState('loading');
+    setSyncMessage('Checking planner_state row in Supabase…');
+    const { data, error } = await supabase
+      .from('planner_state')
+      .select('id, updated_at')
+      .eq('id', REMOTE_STATE_ID)
+      .maybeSingle();
+    if (error) {
+      setSyncState('error');
+      setSyncMessage(`Supabase verify failed: ${error.message}`);
+      return false;
+    }
+    if (!data) {
+      setSyncState('error');
+      setSyncMessage('No planner_state row found yet. Click "Sync to Supabase now" to create it.');
+      setRemoteUpdatedAt(null);
+      return false;
+    }
+    setRemoteUpdatedAt(data.updated_at ?? null);
+    setSyncState('saved');
+    setSyncMessage(`Verified planner_state row "${data.id}" in Supabase.`);
+    return true;
+  }, []);
+
   const resetToSeed = () => {
     setFaculty(seedFaculty);
     setCourses(seedCourses);
@@ -145,8 +184,8 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const value = useMemo(
-    () => ({ faculty, courses, activities, scenarios, academicYears, selectedAcademicYear, qualifications, assignments, setFaculty, setCourses, setActivities, setAssignments, setSelectedAcademicYear, syncState, syncMessage, forceSync, resetToSeed }),
-    [faculty, courses, activities, scenarios, academicYears, selectedAcademicYear, qualifications, assignments, syncState, syncMessage, forceSync]
+    () => ({ faculty, courses, activities, scenarios, academicYears, selectedAcademicYear, qualifications, assignments, setFaculty, setCourses, setActivities, setAssignments, setSelectedAcademicYear, syncState, syncMessage, remoteUpdatedAt, forceSync, checkRemoteState, resetToSeed }),
+    [faculty, courses, activities, scenarios, academicYears, selectedAcademicYear, qualifications, assignments, syncState, syncMessage, remoteUpdatedAt, forceSync, checkRemoteState]
   );
 
   return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;
