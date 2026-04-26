@@ -41,6 +41,24 @@ function sqlInList(ids: string[]) {
   return `(${ids.map((id) => `'${id.replace(/'/g, "''")}'`).join(',')})`;
 }
 
+async function upsertWithCompatibility(table: string, rows: Record<string, unknown>[]) {
+  if (!supabase) return { error: { message: 'Supabase client is not configured.' } };
+  const primaryAttempt = await supabase.from(table).upsert(rows, { onConflict: 'id' });
+  if (!primaryAttempt.error) return primaryAttempt;
+
+  if (table === 'courses' && primaryAttempt.error.message.includes('annual_sections_required')) {
+    const compatibleRows = rows.map(({ annual_sections_required: _ignored, ...rest }) => rest);
+    return supabase.from(table).upsert(compatibleRows, { onConflict: 'id' });
+  }
+
+  if (table === 'faculty' && primaryAttempt.error.message.includes('prefix')) {
+    const compatibleRows = rows.map(({ prefix: _ignored, ...rest }) => rest);
+    return supabase.from(table).upsert(compatibleRows, { onConflict: 'id' });
+  }
+
+  return primaryAttempt;
+}
+
 export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const [faculty, setFaculty] = useState<Faculty[]>(seedFaculty);
   const [courses, setCourses] = useState<Course[]>(seedCourses);
@@ -86,7 +104,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
 
     const tables = Object.entries(payloads) as Array<[keyof typeof payloads, Record<string, unknown>[]]>;
     for (const [table, rows] of tables) {
-      const { error: upsertError } = await supabase.from(table).upsert(rows, { onConflict: 'id' });
+      const { error: upsertError } = await upsertWithCompatibility(table, rows);
       if (upsertError) {
         if (upsertError.message.includes('invalid input syntax for type uuid')) {
           const legacyOk = await writeLegacyPlannerState();
