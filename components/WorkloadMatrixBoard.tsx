@@ -45,16 +45,23 @@ export function WorkloadMatrixBoard() {
 
     const activeId = String(active.id);
     const overId = String(over.id);
+
+    if (overId === 'unassigned-drop') {
+      if (!activeId.startsWith('template-')) {
+        setAssignments((prev) => prev.filter((assignment) => assignment.id !== activeId));
+      }
+      return;
+    }
+
     const [facultyId, quarter] = overId.split('::');
     if (!facultyId || !quarter) return;
 
     if (activeId.startsWith('template-course-')) {
-      const match = activeId.match(/^template-course-(.+)-(\d+)$/);
-      if (!match) return;
-      const [, courseId, sectionToken] = match;
-      const section = Number(sectionToken || '1');
+      const courseId = activeId.replace('template-course-', '');
       const course = courses.find((c) => c.id === courseId);
       if (!course) return;
+      const existingSections = assignments.filter((a) => a.scenario_id === selectedScenario && a.academic_year === selectedAcademicYear && a.course_id === courseId).length;
+      const section = existingSections + 1;
       const next: WorkloadAssignment = {
         id: crypto.randomUUID(),
         faculty_id: facultyId,
@@ -109,11 +116,9 @@ export function WorkloadMatrixBoard() {
   const dragPreview = (() => {
     if (!activeDragId) return null;
     if (activeDragId.startsWith('template-course-')) {
-      const match = activeDragId.match(/^template-course-(.+)-(\d+)$/);
-      if (!match) return 'Course';
-      const [, courseId, section] = match;
+      const courseId = activeDragId.replace('template-course-', '');
       const course = courses.find((c) => c.id === courseId);
-      return course ? `${course.prefix} ${course.number} ${course.title} · Sec ${section}` : 'Course';
+      return course ? `${course.prefix} ${course.number} ${course.title}` : 'Course';
     }
     if (activeDragId.startsWith('template-activity-')) {
       const activityId = activeDragId.replace('template-activity-', '');

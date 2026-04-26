@@ -1,6 +1,6 @@
 'use client';
 
-import { useDraggable } from '@dnd-kit/core';
+import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { Activity, Course, WorkloadAssignment } from '@/lib/types';
 
 type Props = {
@@ -28,38 +28,43 @@ function DraggableTemplate({ id, label, subtitle, canEdit }: { id: string; label
 }
 
 export function UnassignedSidebar({ courses, activities, assignments, canEdit }: Props) {
+  const { setNodeRef: setUnassignedRef, isOver: isOverUnassigned } = useDroppable({ id: 'unassigned-drop', disabled: !canEdit });
   const assignedCount = assignments.reduce<Record<string, number>>((acc, a) => {
     if (a.course_id) acc[a.course_id] = (acc[a.course_id] ?? 0) + 1;
     return acc;
   }, {});
 
-  const buildCourseSlots = (course: Course) => {
+  const buildRequiredCourseTemplate = (course: Course) => {
     const required = course.annual_sections_required ?? 1;
     const assigned = assignedCount[course.id] ?? 0;
     const open = Math.max(required - assigned, 0);
-    return Array.from({ length: open }, (_, index) => ({
-      id: `template-course-${course.id}-${index + 1}`,
-      label: `${course.prefix} ${course.number} ${course.title} · Sec ${assigned + index + 1}`,
-      subtitle: `${course.credit_hours} cr / ${course.default_workload_units} WU · ${assigned}/${required} assigned`
-    }));
+    if (open === 0) return null;
+    return {
+      id: `template-course-${course.id}`,
+      label: `${course.prefix} ${course.number} ${course.title}`,
+      subtitle: `${course.credit_hours} cr / ${course.default_workload_units} WU · ${open} left to assign (${assigned}/${required} assigned)`
+    };
   };
 
-  const required = courses.filter((c) => c.is_required).flatMap(buildCourseSlots);
+  const required = courses.filter((c) => c.is_required).map(buildRequiredCourseTemplate).filter(Boolean) as Array<{ id: string; label: string; subtitle: string }>;
   const elective = courses.filter((c) => !c.is_required && (assignedCount[c.id] ?? 0) === 0);
 
   return (
     <aside className="sticky top-28 max-h-[calc(100vh-8rem)] w-80 space-y-3 overflow-y-auto rounded-lg border bg-slate-100 p-3">
       <h3 className="text-sm font-semibold">Unassigned Work</h3>
-      <p className="rounded bg-indigo-50 p-2 text-xs text-indigo-800">
-        Drag any card below into a faculty quarter cell to assign it.
-      </p>
+      <div
+        ref={setUnassignedRef}
+        className={`rounded border p-2 text-xs ${isOverUnassigned ? 'border-indigo-500 bg-indigo-100 text-indigo-900' : 'border-indigo-200 bg-indigo-50 text-indigo-800'}`}
+      >
+        Drag any card below into a faculty quarter cell to assign it. Drop an assigned matrix block here to unassign it.
+      </div>
       <section>
         <p className="mb-2 text-xs font-semibold text-red-700">Required Courses</p>
         {required.map((c) => <DraggableTemplate key={c.id} id={c.id} label={c.label} subtitle={c.subtitle} canEdit={canEdit} />)}
       </section>
       <section>
         <p className="mb-2 text-xs font-semibold text-amber-700">Elective Courses</p>
-        {elective.slice(0, 8).map((c) => <DraggableTemplate key={c.id} id={`template-course-${c.id}-1`} label={`${c.prefix} ${c.number} ${c.title}`} subtitle={`${c.credit_hours} cr / ${c.default_workload_units} WU`} canEdit={canEdit} />)}
+        {elective.slice(0, 8).map((c) => <DraggableTemplate key={c.id} id={`template-course-${c.id}`} label={`${c.prefix} ${c.number} ${c.title}`} subtitle={`${c.credit_hours} cr / ${c.default_workload_units} WU`} canEdit={canEdit} />)}
       </section>
       <section>
         <p className="mb-2 text-xs font-semibold text-indigo-700">Activities</p>
