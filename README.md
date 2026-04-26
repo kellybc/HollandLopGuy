@@ -23,6 +23,7 @@ Faculty Load Matrix is a highly visual workload board for planning an academic y
 - Visual block sizing rule: **1 WU = 40 px height**.
 - Credit hours are shown but do not drive visual size; workload units do.
 - If Supabase env vars are configured, planner edits sync to `planner_state` so changes persist across devices.
+- Storage mode is Supabase-first: planner entity data is read from/written to Supabase tables (no browser localStorage persistence for planner data).
 
 ## Data model implemented
 - Faculty

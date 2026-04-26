@@ -30,8 +30,6 @@ type AppDataState = {
   resetToSeed: () => void;
 };
 
-const STORAGE_KEY = 'flm-admin-data-v1';
-const BLOCK_COLORS_KEY = 'flm-block-colors-v1';
 const LEGACY_STATE_ID = 'global';
 const AppDataContext = createContext<AppDataState | null>(null);
 
@@ -86,7 +84,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const [assignments, setAssignments] = useState<WorkloadAssignment[]>(initialAssignments);
   const [hydrated, setHydrated] = useState(false);
   const [syncState, setSyncState] = useState<'disabled' | 'loading' | 'saving' | 'saved' | 'error'>(isSupabaseConfigured ? 'loading' : 'disabled');
-  const [syncMessage, setSyncMessage] = useState(isSupabaseConfigured ? 'Connecting to Supabase…' : 'Supabase not configured; using local browser storage only.');
+  const [syncMessage, setSyncMessage] = useState(isSupabaseConfigured ? 'Connecting to Supabase…' : 'Supabase not configured; remote-only mode requires Supabase.');
   const [remoteUpdatedAt, setRemoteUpdatedAt] = useState<string | null>(null);
   const [blockColors, setBlockColors] = useState<BlockColorConfig>(defaultBlockColors);
 
@@ -171,29 +169,6 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const load = async () => {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        try {
-          const parsed = JSON.parse(raw) as Partial<AppDataState>;
-          if (parsed.faculty) setFaculty(parsed.faculty);
-          if (parsed.courses) setCourses(parsed.courses);
-          if (parsed.activities) setActivities(parsed.activities);
-          if (parsed.assignments) setAssignments(parsed.assignments);
-          if (parsed.selectedAcademicYear) setSelectedAcademicYear(parsed.selectedAcademicYear);
-        } catch {
-          // no-op
-        }
-      }
-      const rawBlockColors = localStorage.getItem(BLOCK_COLORS_KEY);
-      if (rawBlockColors) {
-        try {
-          const parsed = JSON.parse(rawBlockColors) as Partial<BlockColorConfig>;
-          setBlockColors((prev) => ({ ...prev, ...parsed }));
-        } catch {
-          // no-op
-        }
-      }
-
       if (isSupabaseConfigured && supabase) {
         setSyncState('loading');
         setSyncMessage('Reading all planner tables from Supabase…');
@@ -309,19 +284,6 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!hydrated) return;
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ faculty, courses, activities, scenarios, academicYears, qualifications, assignments, selectedAcademicYear })
-    );
-  }, [faculty, courses, activities, scenarios, academicYears, qualifications, assignments, selectedAcademicYear, hydrated]);
-
-  useEffect(() => {
-    if (!hydrated) return;
-    localStorage.setItem(BLOCK_COLORS_KEY, JSON.stringify(blockColors));
-  }, [blockColors, hydrated]);
-
-  useEffect(() => {
-    if (!hydrated) return;
     if (!(isSupabaseConfigured && supabase)) return;
     const handle = setTimeout(() => {
       setSyncState('saving');
@@ -380,9 +342,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
     setActivities(seedActivities);
     setAssignments(initialAssignments);
     setSelectedAcademicYear(seedAcademicYears.find((a) => a.active)?.label ?? seedAcademicYears[0].label);
-    localStorage.removeItem(STORAGE_KEY);
     setBlockColors(defaultBlockColors);
-    localStorage.removeItem(BLOCK_COLORS_KEY);
   };
 
   const value = useMemo(
