@@ -268,26 +268,38 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
             workload_units: asNumber(row.workload_units),
             credit_hours_snapshot: row.credit_hours_snapshot == null ? null : asNumber(row.credit_hours_snapshot)
           }));
+          const hasRemoteData =
+            remoteYears.length > 0 ||
+            remoteScenarios.length > 0 ||
+            remoteFaculty.length > 0 ||
+            remoteCourses.length > 0 ||
+            remoteActivities.length > 0 ||
+            remoteQualifications.length > 0 ||
+            remoteAssignments.length > 0;
 
-          if (remoteYears.length) {
-            setAcademicYears(remoteYears);
-            const activeYearLabel = remoteYears.find((year) => year.active)?.label ?? remoteYears[0].label;
-            setSelectedAcademicYear(activeYearLabel);
+          if (hasRemoteData) {
+            if (remoteYears.length) {
+              setAcademicYears(remoteYears);
+              const activeYearLabel = remoteYears.find((year) => year.active)?.label ?? remoteYears[0].label;
+              setSelectedAcademicYear(activeYearLabel);
+            }
+            setScenarios(remoteScenarios);
+            setFaculty(remoteFaculty);
+            setCourses(remoteCourses);
+            setActivities(remoteActivities);
+            setQualifications(remoteQualifications);
+            setAssignments(remoteAssignments);
+            const updatedAt = remoteAssignments
+              .map((row) => row.updated_at)
+              .filter(Boolean)
+              .sort()
+              .at(-1);
+            setRemoteUpdatedAt(updatedAt ?? null);
+            setSyncMessage('Supabase relational sync connected.');
+          } else {
+            setSyncMessage('No remote rows found; using seed data and writing to Supabase.');
           }
-          setScenarios(remoteScenarios);
-          setFaculty(remoteFaculty);
-          setCourses(remoteCourses);
-          setActivities(remoteActivities);
-          setQualifications(remoteQualifications);
-          setAssignments(remoteAssignments);
-          const updatedAt = remoteAssignments
-            .map((row) => row.updated_at)
-            .filter(Boolean)
-            .sort()
-            .at(-1);
-          setRemoteUpdatedAt(updatedAt ?? null);
           setSyncState('saved');
-          setSyncMessage('Supabase relational sync connected.');
         }
       }
       setHydrated(true);
