@@ -10,6 +10,31 @@ function makeId() {
   return typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `id-${Date.now()}`;
 }
 
+function SectionCard({
+  title,
+  defaultOpen = true,
+  children
+}: {
+  title: string;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <section className="rounded-lg border bg-white p-4">
+      <button
+        type="button"
+        className="flex w-full items-center justify-between text-left"
+        onClick={() => setOpen((prev) => !prev)}
+      >
+        <h3 className="text-lg font-semibold">{title}</h3>
+        <span className="text-sm text-slate-600">{open ? '▾ Collapse' : '▸ Expand'}</span>
+      </button>
+      {open ? <div className="mt-3">{children}</div> : null}
+    </section>
+  );
+}
+
 export default function AdminPage() {
   const { faculty, courses, activities, assignments, academicYears, selectedAcademicYear, setSelectedAcademicYear, setFaculty, setCourses, setActivities, setAssignments, blockColors, setBlockColors, resetToSeed } = useAppData();
   const role = process.env.NEXT_PUBLIC_APP_ROLE ?? 'admin';
@@ -90,8 +115,7 @@ export default function AdminPage() {
         </div>
       </section>
 
-      <section className="rounded-lg border bg-white p-4">
-        <h3 className="mb-2 text-lg font-semibold">Matrix Color Coding</h3>
+      <SectionCard title="Matrix Color Coding">
         <p className="mb-3 text-sm text-slate-600">Customize assignment block colors used on the workload matrix.</p>
         <div className="grid gap-3 md:grid-cols-3">
           {([
@@ -111,10 +135,9 @@ export default function AdminPage() {
             </label>
           ))}
         </div>
-      </section>
+      </SectionCard>
 
-      <section className="rounded-lg border bg-white p-4">
-        <h3 className="mb-2 text-lg font-semibold">Faculty CRUD</h3>
+      <SectionCard title="Faculty CRUD">
         <div className="mb-3 grid gap-2 md:grid-cols-5">
           <select className="rounded border p-2 text-sm" value={newFaculty.prefix} onChange={(e) => setNewFaculty((p) => ({ ...p, prefix: e.target.value }))}>
             {['Dr.', 'Ms.', 'Mrs.', 'Mr.', 'Prof.'].map((p) => <option key={p} value={p}>{p}</option>)}
@@ -151,10 +174,9 @@ export default function AdminPage() {
             </tbody>
           </table>
         </div>
-      </section>
+      </SectionCard>
 
-      <section className="rounded-lg border bg-white p-4">
-        <h3 className="mb-2 text-lg font-semibold">Course CRUD</h3>
+      <SectionCard title="Course CRUD">
         <div className="mb-3 grid gap-2 md:grid-cols-6">
           <input className="rounded border p-2 text-sm" placeholder="Prefix" value={newCourse.prefix} onChange={(e) => setNewCourse((p) => ({ ...p, prefix: e.target.value }))} />
           <input className="rounded border p-2 text-sm" placeholder="Number" value={newCourse.number} onChange={(e) => setNewCourse((p) => ({ ...p, number: e.target.value }))} />
@@ -183,10 +205,9 @@ export default function AdminPage() {
             </div>
           ))}
         </div>
-      </section>
+      </SectionCard>
 
-      <section className="rounded-lg border bg-white p-4">
-        <h3 className="mb-2 text-lg font-semibold">Assignment CRUD</h3>
+      <SectionCard title="Assignment CRUD">
         <div className="mb-3 grid gap-2 md:grid-cols-7">
           <select className="rounded border p-2 text-sm" value={newAssignment.faculty_id} onChange={(e) => setNewAssignment((p) => ({ ...p, faculty_id: e.target.value }))}>{faculty.map((f) => <option key={f.id} value={f.id}>{`${f.prefix ?? ''} ${f.name}`.trim()}</option>)}</select>
           <select className="rounded border p-2 text-sm" value={newAssignment.quarter} onChange={(e) => setNewAssignment((p) => ({ ...p, quarter: e.target.value as Quarter }))}>{quarterOptions.map((q) => <option key={q}>{q}</option>)}</select>
@@ -217,10 +238,9 @@ export default function AdminPage() {
             </tbody>
           </table>
         </div>
-      </section>
+      </SectionCard>
 
-      <section className="rounded-lg border bg-white p-4">
-        <h3 className="mb-2 text-lg font-semibold">Activities</h3>
+      <SectionCard title="Activities">
         <div className="mb-3 grid gap-2 md:grid-cols-4">
           <input className="rounded border p-2 text-sm" placeholder="Activity title" value={newActivity.title} onChange={(e) => setNewActivity((p) => ({ ...p, title: e.target.value }))} />
           <select className="rounded border p-2 text-sm" value={newActivity.category} onChange={(e) => setNewActivity((p) => ({ ...p, category: e.target.value as typeof newActivity.category }))}>
@@ -249,7 +269,7 @@ export default function AdminPage() {
             </div>
           ))}
         </div>
-      </section>
+      </SectionCard>
     </div>
   );
 }
