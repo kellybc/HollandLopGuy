@@ -106,14 +106,16 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
     const courseIds = new Set(courses.map((row) => row.id));
     const activityIds = new Set(activities.map((row) => row.id));
     const scenarioIds = new Set(scenarios.map((row) => row.id));
+    const defaultScenarioId = scenarios[0]?.id ?? null;
     const safeQualifications = qualifications.filter((row) => facultyIds.has(row.faculty_id) && courseIds.has(row.course_id));
-    const safeAssignments = assignments.filter((row) => {
+    const safeAssignments = assignments.flatMap((row) => {
       const hasFaculty = facultyIds.has(row.faculty_id);
-      const hasScenario = scenarioIds.has(row.scenario_id);
       const hasItem = row.item_type === 'course'
         ? Boolean(row.course_id && courseIds.has(row.course_id))
         : Boolean(row.activity_id && activityIds.has(row.activity_id));
-      return hasFaculty && hasScenario && hasItem;
+      const scenario_id = scenarioIds.has(row.scenario_id) ? row.scenario_id : defaultScenarioId;
+      if (!hasFaculty || !hasItem || !scenario_id) return [];
+      return [{ ...row, scenario_id }];
     });
     const payloads = {
       academic_years: academicYears.map((row) => ({ ...row, active: row.label === selectedAcademicYear })),
