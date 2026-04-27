@@ -285,14 +285,11 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!hydrated) return;
     if (!(isSupabaseConfigured && supabase)) return;
-    const handle = setTimeout(() => {
-      setSyncState('saving');
-      setSyncMessage('Writing planner tables to Supabase…');
-      void (async () => {
-        await writeToSupabase();
-      })();
-    }, 500);
-    return () => clearTimeout(handle);
+    setSyncState('saving');
+    setSyncMessage('Writing planner tables to Supabase…');
+    void (async () => {
+      await writeToSupabase();
+    })();
   }, [hydrated, writeToSupabase]);
 
   const forceSync = useCallback(async () => {
