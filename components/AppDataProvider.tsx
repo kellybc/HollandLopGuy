@@ -102,12 +102,22 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const writeToSupabase = useCallback(async () => {
     if (!(isSupabaseConfigured && supabase)) return false;
     const nowIso = new Date().toISOString();
+    const currentYear = new Date().getUTCFullYear();
+    const fallbackAcademicYearLabel = selectedAcademicYear || `${currentYear}-${currentYear + 1}`;
+    const resolvedAcademicYears = academicYears.length > 0
+      ? academicYears.map((row) => ({ ...row, active: row.label === selectedAcademicYear }))
+      : [{
+          id: 'ay-default',
+          label: fallbackAcademicYearLabel,
+          start_year: currentYear,
+          active: true
+        }];
     const resolvedScenarios = scenarios.length > 0
       ? scenarios
-      : academicYears.length > 0
+      : resolvedAcademicYears.length > 0
         ? [{
             id: 'sc-default',
-            academic_year_id: academicYears[0].id,
+            academic_year_id: resolvedAcademicYears[0].id,
             name: 'Base Plan',
             description: 'Auto-created default scenario',
             is_active: true
@@ -129,7 +139,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       return [{ ...row, scenario_id }];
     });
     const payloads = {
-      academic_years: academicYears.map((row) => ({ ...row, active: row.label === selectedAcademicYear })),
+      academic_years: resolvedAcademicYears,
       scenarios: resolvedScenarios,
       faculty: faculty.map((row) => ({ ...row, prefix: row.prefix ?? 'Dr.' })),
       courses,
