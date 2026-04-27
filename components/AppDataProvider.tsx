@@ -102,11 +102,22 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const writeToSupabase = useCallback(async () => {
     if (!(isSupabaseConfigured && supabase)) return false;
     const nowIso = new Date().toISOString();
+    const resolvedScenarios = scenarios.length > 0
+      ? scenarios
+      : academicYears.length > 0
+        ? [{
+            id: 'sc-default',
+            academic_year_id: academicYears[0].id,
+            name: 'Base Plan',
+            description: 'Auto-created default scenario',
+            is_active: true
+          }]
+        : [];
     const facultyIds = new Set(faculty.map((row) => row.id));
     const courseIds = new Set(courses.map((row) => row.id));
     const activityIds = new Set(activities.map((row) => row.id));
-    const scenarioIds = new Set(scenarios.map((row) => row.id));
-    const defaultScenarioId = scenarios[0]?.id ?? null;
+    const scenarioIds = new Set(resolvedScenarios.map((row) => row.id));
+    const defaultScenarioId = resolvedScenarios[0]?.id ?? null;
     const safeQualifications = qualifications.filter((row) => facultyIds.has(row.faculty_id) && courseIds.has(row.course_id));
     const safeAssignments = assignments.flatMap((row) => {
       const hasFaculty = facultyIds.has(row.faculty_id);
@@ -119,7 +130,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
     });
     const payloads = {
       academic_years: academicYears.map((row) => ({ ...row, active: row.label === selectedAcademicYear })),
-      scenarios,
+      scenarios: resolvedScenarios,
       faculty: faculty.map((row) => ({ ...row, prefix: row.prefix ?? 'Dr.' })),
       courses,
       activities,
