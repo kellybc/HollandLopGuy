@@ -68,6 +68,23 @@ async function upsertWithCompatibility(table: string, rows: Record<string, unkno
   return primaryAttempt;
 }
 
+async function deleteMissingRowsById(table: string, desiredIds: string[]) {
+  if (!supabase) return { error: { message: 'Supabase client is not configured.' } };
+
+  const { data, error: readError } = await supabase.from(table).select('id');
+  if (readError) return { error: readError };
+
+  const desiredIdSet = new Set(desiredIds);
+  const staleIds = (data ?? [])
+    .map((row) => String(row.id))
+    .filter((id) => !desiredIdSet.has(id));
+
+  if (staleIds.length === 0) return { error: null };
+
+  const { error: deleteError } = await supabase.from(table).delete().in('id', staleIds);
+  return { error: deleteError };
+}
+
 export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const [faculty, setFaculty] = useState<Faculty[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
@@ -164,6 +181,15 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
         setSyncMessage(`Supabase write failed (${table}): ${upsertError.message}`);
         return false;
       }
+    }
+    const { error: assignmentsDeleteError } = await deleteMissingRowsById(
+      'workload_assignments',
+      safeAssignments.map((row) => row.id)
+    );
+    if (assignmentsDeleteError) {
+      setSyncState('error');
+      setSyncMessage(`Supabase delete sync failed (workload_assignments): ${assignmentsDeleteError.message}`);
+      return false;
     }
 
     setRemoteUpdatedAt(nowIso);
