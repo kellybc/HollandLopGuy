@@ -136,7 +136,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
         : Boolean(row.activity_id && activityIds.has(row.activity_id));
       const scenario_id = scenarioIds.has(row.scenario_id) ? row.scenario_id : defaultScenarioId;
       if (!hasFaculty || !hasItem || !scenario_id) return [];
-      return [{ ...row, scenario_id }];
+      return [{ ...row, scenario_id, academic_year: row.academic_year || fallbackAcademicYearLabel }];
     });
     const payloads = {
       academic_years: resolvedAcademicYears,

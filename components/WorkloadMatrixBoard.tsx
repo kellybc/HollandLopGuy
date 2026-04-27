@@ -33,6 +33,7 @@ export function WorkloadMatrixBoard() {
 
   const scenarioAssignments = assignments.filter((a) => a.scenario_id === selectedScenario && a.academic_year === selectedAcademicYear);
   const warnings = useMemo(() => findWarnings({ assignments: scenarioAssignments, faculty, courses, activities, qualifications }), [scenarioAssignments]);
+  const effectiveAcademicYear = selectedAcademicYear || academicYears[0]?.label || `${new Date().getUTCFullYear()}-${new Date().getUTCFullYear() + 1}`;
 
   useEffect(() => {
     if (scenarios.length === 0) return;
@@ -73,7 +74,7 @@ export function WorkloadMatrixBoard() {
         id: crypto.randomUUID(),
         faculty_id: facultyId,
         scenario_id: selectedScenario,
-        academic_year: selectedAcademicYear,
+        academic_year: effectiveAcademicYear,
         quarter: quarter as WorkloadAssignment['quarter'],
         item_type: 'course',
         course_id: course.id,
@@ -99,7 +100,7 @@ export function WorkloadMatrixBoard() {
         id: crypto.randomUUID(),
         faculty_id: facultyId,
         scenario_id: selectedScenario,
-        academic_year: selectedAcademicYear,
+        academic_year: effectiveAcademicYear,
         quarter: quarter as WorkloadAssignment['quarter'],
         item_type: 'activity',
         course_id: null,
