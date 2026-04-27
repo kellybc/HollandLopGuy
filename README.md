@@ -79,7 +79,7 @@ Faculty Load Matrix is a highly visual workload board for planning an academic y
 4. Run `supabase/seed.sql`.
 5. Configure JWT/user metadata to include `app_role` (`admin` or `viewer`) for RLS policy checks.
 6. App sync writes/reads all planner entities from relational tables (`academic_years`, `scenarios`, `faculty`, `courses`, `activities`, `faculty_course_qualifications`, `workload_assignments`).
-7. If remote tables are empty, the app keeps local seed data and writes that seed set to Supabase on first sync.
+7. If remote tables are empty, the app stays empty (no automatic seed bootstrap). Add/import your real data through the app or SQL.
 
 ### Troubleshooting: "Supabase not connected"
 - In Settings, if sync status is `disabled`, your browser app likely cannot read required env vars.

@@ -2,7 +2,6 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
-import { academicYears as seedAcademicYears, activities as seedActivities, courses as seedCourses, faculty as seedFaculty, initialAssignments, qualifications as seedQualifications, scenarios as seedScenarios } from '@/lib/seed-data';
 import { AcademicYear, Activity, BlockColorConfig, Course, Faculty, FacultyCourseQualification, Scenario, WorkloadAssignment } from '@/lib/types';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 
@@ -46,10 +45,6 @@ function asNumber(value: unknown, fallback = 0) {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-function sqlInList(ids: string[]) {
-  return `(${ids.map((id) => `'${id.replace(/'/g, "''")}'`).join(',')})`;
-}
-
 async function upsertWithCompatibility(table: string, rows: Record<string, unknown>[]) {
   if (!supabase) return { error: { message: 'Supabase client is not configured.' } };
   const primaryAttempt = await supabase.from(table).upsert(rows, { onConflict: 'id' });
@@ -74,14 +69,14 @@ async function upsertWithCompatibility(table: string, rows: Record<string, unkno
 }
 
 export function AppDataProvider({ children }: { children: React.ReactNode }) {
-  const [faculty, setFaculty] = useState<Faculty[]>(seedFaculty);
-  const [courses, setCourses] = useState<Course[]>(seedCourses);
-  const [activities, setActivities] = useState<Activity[]>(seedActivities);
-  const [scenarios, setScenarios] = useState<Scenario[]>(seedScenarios);
-  const [academicYears, setAcademicYears] = useState<AcademicYear[]>(seedAcademicYears);
-  const [selectedAcademicYear, setSelectedAcademicYear] = useState(seedAcademicYears.find((a) => a.active)?.label ?? seedAcademicYears[0].label);
-  const [qualifications, setQualifications] = useState<FacultyCourseQualification[]>(seedQualifications);
-  const [assignments, setAssignments] = useState<WorkloadAssignment[]>(initialAssignments);
+  const [faculty, setFaculty] = useState<Faculty[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [scenarios, setScenarios] = useState<Scenario[]>([]);
+  const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState('');
+  const [qualifications, setQualifications] = useState<FacultyCourseQualification[]>([]);
+  const [assignments, setAssignments] = useState<WorkloadAssignment[]>([]);
   const [hydrated, setHydrated] = useState(false);
   const [syncState, setSyncState] = useState<'disabled' | 'loading' | 'saving' | 'saved' | 'error'>(isSupabaseConfigured ? 'loading' : 'disabled');
   const [syncMessage, setSyncMessage] = useState(isSupabaseConfigured ? 'Connecting to Supabase…' : 'Supabase not configured; remote-only mode requires Supabase.');
@@ -144,19 +139,6 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
         }
         setSyncState('error');
         setSyncMessage(`Supabase write failed (${table}): ${upsertError.message}`);
-        return false;
-      }
-    }
-
-    for (const [table, rows] of tables) {
-      const ids = rows.map((row) => String(row.id));
-      const pruneQuery = supabase.from(table).delete();
-      const { error: pruneError } = ids.length > 0
-        ? await pruneQuery.not('id', 'in', sqlInList(ids))
-        : await pruneQuery.not('id', 'is', null);
-      if (pruneError) {
-        setSyncState('error');
-        setSyncMessage(`Supabase prune failed (${table}): ${pruneError.message}`);
         return false;
       }
     }
@@ -243,43 +225,28 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
             workload_units: asNumber(row.workload_units),
             credit_hours_snapshot: row.credit_hours_snapshot == null ? null : asNumber(row.credit_hours_snapshot)
           }));
-          const hasRemoteData =
-            remoteYears.length > 0 ||
-            remoteScenarios.length > 0 ||
-            remoteFaculty.length > 0 ||
-            remoteCourses.length > 0 ||
-            remoteActivities.length > 0 ||
-            remoteQualifications.length > 0 ||
-            remoteAssignments.length > 0;
-
-          if (hasRemoteData) {
-            if (remoteYears.length) {
-              setAcademicYears(remoteYears);
-              const activeYearLabel = remoteYears.find((year) => year.active)?.label ?? remoteYears[0].label;
-              setSelectedAcademicYear(activeYearLabel);
-            }
-            setScenarios(remoteScenarios);
-            setFaculty(remoteFaculty);
-            setCourses(remoteCourses);
-            setActivities(remoteActivities);
-            setQualifications(remoteQualifications);
-            setAssignments(remoteAssignments);
-            const updatedAt = remoteAssignments
-              .map((row) => row.updated_at)
-              .filter(Boolean)
-              .sort()
-              .at(-1);
-            setRemoteUpdatedAt(updatedAt ?? null);
-            setSyncMessage('Supabase relational sync connected.');
-            setSyncState('saved');
+          if (remoteYears.length) {
+            setAcademicYears(remoteYears);
+            const activeYearLabel = remoteYears.find((year) => year.active)?.label ?? remoteYears[0].label;
+            setSelectedAcademicYear(activeYearLabel);
           } else {
-            setSyncMessage('No remote rows found; bootstrapping Supabase from seed data…');
-            const bootstrapOk = await writeToSupabase();
-            if (bootstrapOk) {
-              setSyncMessage('Supabase bootstrap complete (seed data written).');
-              setSyncState('saved');
-            }
+            setAcademicYears([]);
+            setSelectedAcademicYear('');
           }
+          setScenarios(remoteScenarios);
+          setFaculty(remoteFaculty);
+          setCourses(remoteCourses);
+          setActivities(remoteActivities);
+          setQualifications(remoteQualifications);
+          setAssignments(remoteAssignments);
+          const updatedAt = remoteAssignments
+            .map((row) => row.updated_at)
+            .filter(Boolean)
+            .sort()
+            .at(-1);
+          setRemoteUpdatedAt(updatedAt ?? null);
+          setSyncMessage('Supabase relational sync connected.');
+          setSyncState('saved');
         }
       }
       setHydrated(true);
@@ -339,12 +306,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const resetToSeed = () => {
-    setFaculty(seedFaculty);
-    setCourses(seedCourses);
-    setActivities(seedActivities);
-    setAssignments(initialAssignments);
-    setSelectedAcademicYear(seedAcademicYears.find((a) => a.active)?.label ?? seedAcademicYears[0].label);
-    setBlockColors(defaultBlockColors);
+    setSyncMessage('Reset to seed is disabled in Supabase-only production mode.');
   };
 
   const value = useMemo(
