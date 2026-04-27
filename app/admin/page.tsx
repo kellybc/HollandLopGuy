@@ -36,7 +36,7 @@ function SectionCard({
 }
 
 export default function AdminPage() {
-  const { faculty, courses, activities, assignments, academicYears, selectedAcademicYear, setSelectedAcademicYear, setFaculty, setCourses, setActivities, setAssignments, blockColors, setBlockColors, resetToSeed } = useAppData();
+  const { faculty, courses, activities, scenarios, assignments, academicYears, selectedAcademicYear, setSelectedAcademicYear, setFaculty, setCourses, setActivities, setAssignments, blockColors, setBlockColors, resetToSeed } = useAppData();
   const role = process.env.NEXT_PUBLIC_APP_ROLE ?? 'admin';
 
   const [newFaculty, setNewFaculty] = useState<{ prefix: string; name: string; program: Program; rank_or_role: string; annual_workload_target: number; fall_target: number; winter_target: number; spring_target: number; summer_target: number }>({ prefix: 'Dr.', name: '', program: 'Mechanical Engineering', rank_or_role: 'Faculty', annual_workload_target: 30, fall_target: 10, winter_target: 10, spring_target: 10, summer_target: 0 });
@@ -76,13 +76,14 @@ export default function AdminPage() {
     if (isCourse && !course) return;
     if (!isCourse && !activity) return;
 
+    const scenarioId = scenarios[0]?.id ?? assignments.find((assignment) => assignment.academic_year === selectedAcademicYear)?.scenario_id ?? 'sc-base';
     const section = isCourse ? assignments.filter((a) => a.academic_year === selectedAcademicYear && a.course_id === course?.id).length + 1 : null;
     setAssignments((prev) => [
       ...prev,
       {
         id: makeId(),
         faculty_id: newAssignment.faculty_id,
-        scenario_id: 'sc-base',
+        scenario_id: scenarioId,
         academic_year: selectedAcademicYear,
         quarter: newAssignment.quarter,
         item_type: newAssignment.item_type,

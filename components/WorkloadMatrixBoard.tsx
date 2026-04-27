@@ -1,7 +1,7 @@
 'use client';
 
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent } from '@dnd-kit/core';
-import { Fragment, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { quarters } from '@/lib/seed-data';
 import { WorkloadAssignment } from '@/lib/types';
 import { annualTotal, quarterTotal, targetForQuarter, workloadStatus } from '@/lib/workload';
@@ -33,6 +33,13 @@ export function WorkloadMatrixBoard() {
 
   const scenarioAssignments = assignments.filter((a) => a.scenario_id === selectedScenario && a.academic_year === selectedAcademicYear);
   const warnings = useMemo(() => findWarnings({ assignments: scenarioAssignments, faculty, courses, activities, qualifications }), [scenarioAssignments]);
+
+  useEffect(() => {
+    if (scenarios.length === 0) return;
+    if (!scenarios.some((scenario) => scenario.id === selectedScenario)) {
+      setSelectedScenario(scenarios[0].id);
+    }
+  }, [scenarios, selectedScenario]);
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveDragId(String(event.active.id));
