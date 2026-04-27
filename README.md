@@ -1,0 +1,118 @@
+# Faculty Load Matrix
+
+Faculty Load Matrix is a highly visual workload board for planning an academic year on a quarter system (Fall, Winter, Spring, Summer). Rows are faculty, columns are quarters, and each assignment is a draggable workload block sized by **workload units (WU)**.
+
+## Stack
+- Next.js + React + TypeScript
+- Tailwind CSS
+- Supabase (database + auth)
+- Vercel deployment target
+- GitHub source control
+
+## Core behavior
+- Drag courses and activities from an unassigned sidebar into faculty/quarter cells.
+- Required courses can define multiple annual sections; each open section appears as its own draggable card.
+- Matrix cells display a \"Drop course/activity here\" hint when empty.
+- Unassigned panel scrolls independently from the matrix and shows a floating drag preview while dragging.
+- Drag existing blocks between cells.
+- Edit block workload units, status, and notes in a modal; block modal also supports deleting assignments directly from matrix screen.
+- Dark mode toggle is available in the top navigation.
+- Matrix and Admin support switching academic years.
+- Matrix has a Compact View toggle to collapse rows for denser scheduling review.
+- Overloaded faculty-quarter cells use a pulsing red glow.
+- Visual block sizing rule: **1 WU = 40 px height**.
+- Credit hours are shown but do not drive visual size; workload units do.
+- If Supabase env vars are configured, planner edits sync to `planner_state` so changes persist across devices.
+- Storage mode is Supabase-first: planner entity data is read from/written to Supabase tables (no browser localStorage persistence for planner data).
+
+## Data model implemented
+- Faculty
+- Courses
+- Activities
+- Workload Assignments
+- Faculty Course Qualifications
+- Academic Years
+- Scenarios
+
+## Key UI routes
+- `/` Workload Matrix
+- `/course-coverage` Course Coverage view
+- `/faculty` Faculty directory
+- `/faculty/[id]` Faculty detail
+- `/courses`, `/activities`, `/scenarios`, `/settings` scaffolding routes
+- `/admin` Admin panel for editing faculty targets, course WU defaults, and activity WU defaults (stored in browser localStorage)
+- `/admin` also edits required section counts per course for multi-section planning
+- Admin includes CRUD operations for faculty, courses, activities, and assignments.
+- New faculty defaults are 30 annual WU with 10/10/10/0 quarter defaults and include a prefix selector.
+- Admin updates to default WU now propagate to existing non-overridden assignments.
+- Existing faculty/course/activity/assignment rows are editable inline in Admin.
+
+## Validation warnings included
+- Required course not assigned
+- Faculty annual workload below/above target
+- Faculty quarterly workload above target
+- Assigned course marked avoid
+- Assigned course with no qualification record
+- Course assigned outside normal offering quarter
+- Activity/course with zero workload units
+
+## CSV import/export
+### Export
+- Faculty workload summary
+- Course coverage summary
+- Assignments
+
+### Import (starter utilities)
+- Faculty import (`.csv`; `.xlsx/.xls` accepted but must be exported to CSV before parsing)
+- Courses import (`.csv`; `.xlsx/.xls` accepted but must be exported to CSV before parsing)
+- Settings page includes required header templates for both CSV formats.
+
+## Supabase setup
+1. Create a Supabase project.
+2. Add env vars to `.env.local`:
+   ```bash
+   NEXT_PUBLIC_SUPABASE_URL=your-project-url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+   NEXT_PUBLIC_APP_ROLE=admin
+   ```
+3. Run SQL migrations in order: `001_init.sql`, `002_planner_state.sql`, `003_planner_state_anon.sql`, `004_relational_sync.sql`, `005_backfill_missing_columns.sql`, `006_backfill_assignment_section.sql`.
+4. Run `supabase/seed.sql`.
+5. Configure JWT/user metadata to include `app_role` (`admin` or `viewer`) for RLS policy checks.
+6. App sync writes/reads all planner entities from relational tables (`academic_years`, `scenarios`, `faculty`, `courses`, `activities`, `faculty_course_qualifications`, `workload_assignments`).
+7. If remote tables are empty, the app stays empty (no automatic seed bootstrap). Add/import your real data through the app or SQL.
+
+### Troubleshooting: "Supabase not connected"
+- In Settings, if sync status is `disabled`, your browser app likely cannot read required env vars.
+- Verify `.env.local` exists at the project root and includes:
+  - `NEXT_PUBLIC_SUPABASE_URL`
+  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+  - `NEXT_PUBLIC_APP_ROLE=admin` (or `viewer`)
+- Restart `npm run dev` after editing `.env.local`.
+- Confirm migrations `003_planner_state_anon.sql`, `004_relational_sync.sql`, `005_backfill_missing_columns.sql`, and `006_backfill_assignment_section.sql` are applied for full browser-based relational sync.
+- In Settings, use **Sync to Supabase now** to force an immediate write and confirm persistence.
+- In Settings, use **Verify remote tables** and check **Last remote update** to confirm Supabase returned data.
+- In Supabase SQL editor, this query should return counts > 0 when sync is working:
+  ```sql
+  select
+    (select count(*) from faculty) as faculty_count,
+    (select count(*) from courses) as courses_count,
+    (select count(*) from activities) as activities_count,
+    (select count(*) from workload_assignments) as assignment_count;
+  ```
+
+## Local development
+```bash
+npm install
+npm run dev
+```
+Open `http://localhost:3000`.
+
+## Deployment (Vercel)
+1. Push repo to GitHub.
+2. Import project in Vercel.
+3. Set environment variables in Vercel project settings.
+4. Deploy.
+
+## Notes
+- The current implementation uses local seed data in `lib/seed-data.ts` for rapid prototyping.
+- Replace seed arrays with Supabase queries/mutations for production persistence.
