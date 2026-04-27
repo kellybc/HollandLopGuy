@@ -271,10 +271,15 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
               .at(-1);
             setRemoteUpdatedAt(updatedAt ?? null);
             setSyncMessage('Supabase relational sync connected.');
+            setSyncState('saved');
           } else {
-            setSyncMessage('No remote rows found; using seed data and writing to Supabase.');
+            setSyncMessage('No remote rows found; bootstrapping Supabase from seed data…');
+            const bootstrapOk = await writeToSupabase();
+            if (bootstrapOk) {
+              setSyncMessage('Supabase bootstrap complete (seed data written).');
+              setSyncState('saved');
+            }
           }
-          setSyncState('saved');
         }
       }
       setHydrated(true);
